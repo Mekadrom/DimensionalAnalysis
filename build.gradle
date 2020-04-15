@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation group: 'org.lwjgl', name: 'lwjgl', version: '3.2.3'
+    implementation group: 'org.nd4j', name: 'nd4j-api', version: '1.0.0-beta6'
+    implementation group: 'org.bytedeco', name: 'javacpp', version: '1.5.2'
+    implementation group: 'org.nd4j', name: 'nd4j-native-platform', version: '1.0.0-beta6'
+
+    testImplementation 'junit:junit:4.12'
+}
