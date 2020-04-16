@@ -1,32 +1,50 @@
 package com.higgs.da.canvas;
 
+import com.higgs.da.DimensionalAnalysis;
+import com.higgs.da.DrawableShape;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.ArrayList;
 
 public class DimensionalCanvasFrame extends JFrame {
+    private static final Dimension SIZE = new Dimension(800, 800);
+
     private DimensionalCanvas _panel = null;
 
-    private List<Drawable> _drawables = new ArrayList<>();
+    private static DrawableShape _shape = new DrawableShape(2);
 
-    public DimensionalCanvasFrame(final Dimension size) {
+    public DimensionalCanvasFrame() {
         super("Dimensional Analysis");
 
-        setSize(size);
+        setSize(SIZE.width + 100, SIZE.height + 100);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        setContentPane(_panel = new DimensionalCanvas());
+        final JPanel panel = new JPanel(new BorderLayout());
+
+        panel.add(getGlobalControlPanel(), BorderLayout.NORTH);
+        panel.add(getAngleControlPanel(), BorderLayout.WEST);
+        panel.add(_panel = new DimensionalCanvas(), BorderLayout.CENTER);
+
+        setContentPane(panel);
 
         setResizable(false);
         setEnabled(true);
         setVisible(true);
+    }
+
+    private JPanel getGlobalControlPanel() {
+        return new DimensionalControlPanel(new Dimension(getWidth(), 100));
+    }
+
+    private JPanel getAngleControlPanel() {
+        return new AttributeControlPanel("Angle", new Dimension(120, getHeight()));
+    }
+
+    private JPanel getLengthControlPanel() {
+        return new AttributeControlPanel("Side Length", new Dimension(120, getHeight()));
     }
 
     /**
@@ -36,16 +54,26 @@ public class DimensionalCanvasFrame extends JFrame {
         _panel.start();
     }
 
-    public void addDrawable(final Drawable drawable) {
-        if (!_drawables.contains(drawable)) _drawables.add(drawable);
+    public void stop() {
+        _panel.stop();
     }
 
-    public void addDrawables(final Collection<? extends Drawable> drawables) {
-        drawables.parallelStream().forEach(this::addDrawable);
+    public void setDrawableShape(final DrawableShape shape) {
+        _shape = shape;
     }
 
-    class DimensionalCanvas extends JPanel {
-        private boolean started = false; // state variable for if this canvas has started its update loop yet
+    public DrawableShape getDrawableShape() {
+        return _shape;
+    }
+
+    static class DimensionalCanvas extends JPanel {
+        private boolean _stopped = false;
+
+        private  Thread _logicThread;
+
+        public void stop() {
+            _stopped = true;
+        }
 
         /**
          * Call once to create a thread that updates the canvas' background and does logic
@@ -59,41 +87,41 @@ public class DimensionalCanvasFrame extends JFrame {
          * @param everyFrameRun a list of runnables to run every frame
          */
         private void start(final Runnable... everyFrameRun) {
-            if (started) return;
+            _stopped = false;
+            if (_logicThread == null) {
+                _logicThread = new Thread(() -> {
+                    final int TARGET_FPS = 60;
+                    final long OPTIMAL_TIME = 1000000000L / TARGET_FPS;
 
-            final Thread logicThread = new Thread(() -> {
-                final int TARGET_FPS = 60;
-                final long OPTIMAL_TIME = 1000000000 / TARGET_FPS;
+                    while (DimensionalCanvas.this.isVisible()) {
+                        if (!_stopped) {
+                            long start = System.nanoTime(), delta;
 
-                while(DimensionalCanvas.this.isVisible()) {
-                    long start = System.nanoTime(), delta;
+                            Arrays.stream(everyFrameRun).forEach(Runnable::run);
 
-                    Arrays.stream(everyFrameRun).forEach(Runnable::run);
-
-                    delta = OPTIMAL_TIME - (System.nanoTime() - start);
-                    if(delta >= 0) {
-                        try {
-                            Thread.sleep(delta / 1000000);
-                        } catch(final InterruptedException e) {
-                            System.out.println("Error keeping fps at 60");
-                            e.printStackTrace();
+                            delta = OPTIMAL_TIME - (System.nanoTime() - start);
+                            if (delta >= 0) {
+                                try {
+                                    Thread.sleep(delta / 1000000L);
+                                } catch (final InterruptedException e) {
+                                    System.out.println("Error keeping fps at 60");
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                Thread.yield();
+                            }
                         }
-                    } else {
-                        Thread.yield();
                     }
-                }
-            });
-            started = true;
-            logicThread.start();
+                });
+                _logicThread.start();
+            }
         }
 
         /**
-         * Updates every drawable every frame; like ticks
+         * Updates the shape every frame; like ticks
          */
         private void logic() {
-            for (final Drawable drawable : _drawables) {
-                drawable.update();
-            }
+            _shape.update();
         }
 
         /**
@@ -117,11 +145,13 @@ public class DimensionalCanvasFrame extends JFrame {
 
             g2d.setColor(Color.BLACK);
             g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
-            g2d.setColor(Color.WHITE);
 
-            for (final Drawable drawable : _drawables) {
-                drawable.draw(g2d);
-            }
+            g2d.setColor(Color.WHITE);
+            g2d.translate(getSize().width / 2, getSize().height / 2);
+            g2d.setStroke(new BasicStroke(DimensionalAnalysis.getLineThickness()));
+            _shape.draw(g2d);
+            g2d.translate(-getSize().width / 2, -getSize().height / 2);
+
             g2d.dispose();
 
             return image;
