@@ -13,9 +13,10 @@ repositories {
 }
 
 dependencies {
-    implementation group: 'org.lwjgl', name: 'lwjgl', version: '3.2.3'
-    implementation group: 'org.lwjgl', name: 'lwjgl-glfw', version: '3.2.3'
-    implementation group: 'org.lwjgl', name: 'lwjgl-opengl', version: '3.2.3'
+//    implementation group: 'org.lwjgl', name: 'lwjgl', version: '3.2.3'
+//    implementation group: 'org.lwjgl', name: 'lwjgl-glfw', version: '3.2.3'
+//    implementation group: 'org.lwjgl', name: 'lwjgl-opengl', version: '3.2.3'
+//    implementation group: 'org.lwjgl', name: 'lwjgl-cuda', version: '3.2.3'
 
     implementation group: 'org.nd4j', name: 'nd4j-api', version: '1.0.0-beta6'
     implementation group: 'org.bytedeco', name: 'javacpp', version: '1.5.2'
