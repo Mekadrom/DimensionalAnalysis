@@ -23,8 +23,8 @@ public class DimensionalControlPanel extends JPanel {
     }
 
     private void initSelf() {
-//        setLayout(new FlowLayout(FlowLayout.CENTER));
-        setLayout(new GridBagLayout());
+        setLayout(new FlowLayout(FlowLayout.CENTER));
+//        setLayout(new GridBagLayout());
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 
@@ -41,42 +41,28 @@ public class DimensionalControlPanel extends JPanel {
         final JLabel drawScaleLabel = new JLabel("Draw Scale:");
         _drawScaleSlider = new JSlider(SwingConstants.HORIZONTAL, 1, 500, 100);
 
-//        add(dimLabel);
-//        add(_dimSlider);
-//        add(lineThickLabel);
-//        add(_lineThickSlider);
-//        add(pointSizeLabel);
-//        add(_pointSizeSlider);
-//        add(drawScaleLabel);
-//        add(_drawScaleSlider);
-
-        final GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.PAGE_START;
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        add(dimLabel, gbc);
-        gbc.gridx++;
+        add(dimLabel);
         add(_dimSlider);
+        add(lineThickLabel);
+        add(_lineThickSlider);
+        add(pointSizeLabel);
+        add(_pointSizeSlider);
+        add(drawScaleLabel);
+        add(_drawScaleSlider);
     }
 
     private void initActionListeners() {
         _dimSlider.addChangeListener(changeEvent -> {
-            DimensionalAnalysis.stop();
-            DimensionalAnalysis.setShape(new DrawableShape(_dimSlider.getValue()));
-            DimensionalAnalysis.start();
+            final JSlider source = (JSlider)changeEvent.getSource();
+            if (!source.getValueIsAdjusting()) {
+                DimensionalAnalysis.stop();
+                DimensionalAnalysis.setShape(new DrawableShape(_dimSlider.getValue()));
+                DimensionalAnalysis.start();
+            }
         });
 
-        _lineThickSlider.addChangeListener(changeEvent -> {
-            DimensionalAnalysis.setLineThickness(_lineThickSlider.getValue());
-        });
-
-        _pointSizeSlider.addChangeListener(changeEvent -> {
-            DimensionalAnalysis.setPointSize(_pointSizeSlider.getValue());
-        });
-
-        _drawScaleSlider.addChangeListener(changeEvent -> {
-            DimensionalAnalysis.setDrawScale(_drawScaleSlider.getValue());
-        });
+        _lineThickSlider.addChangeListener(changeEvent -> DimensionalAnalysis.setLineThickness(_lineThickSlider.getValue()));
+        _pointSizeSlider.addChangeListener(changeEvent -> DimensionalAnalysis.setPointSize(_pointSizeSlider.getValue()));
+        _drawScaleSlider.addChangeListener(changeEvent -> DimensionalAnalysis.setDrawScale(_drawScaleSlider.getValue()));
     }
 }

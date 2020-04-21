@@ -1,14 +1,24 @@
 package com.higgs.da;
 
+import com.higgs.da.canvas.AngleChangeListener;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class DrawableShape {
     private int _ndimensions;
     private INDArray _points;
     private INDArray _angles;
+
+    private boolean[] _anglesProgress;
+    private double[] _anglesProgressSpeed;
+    private List<ChangeListener> _angleListeners = new ArrayList<>();
 
     public DrawableShape(final int ndimensions) {
         _ndimensions = ndimensions;
@@ -55,6 +65,43 @@ public class DrawableShape {
     private void initAngles() {
         final int numAngles = DimensionalMatrixHelper.angleCountFromDimCount(_ndimensions);
         _angles = Nd4j.zeros(new int[] { 1, numAngles });
+
+        _anglesProgress = new boolean[numAngles];
+        Arrays.fill(_anglesProgress, true);
+
+        _anglesProgressSpeed = new double[numAngles];
+        Arrays.fill(_anglesProgressSpeed, 0.01);
+    }
+
+    public void setAngles(final INDArray angles) {
+        if (angles.rows() == _angles.rows() && angles.columns() == _angles.columns()) {
+            _angles = angles;
+        }
+    }
+
+    public INDArray getAngles() {
+        return _angles;
+    }
+
+    public void setAngle(final int angleIndex, final double value) {
+        if (angleIndex < _angles.columns()) {
+            _angles.put(0, angleIndex, value);
+        }
+    }
+
+    public double getAngle(final int angleIndex) {
+        if (angleIndex < _angles.columns()) {
+            return _angles.getDouble(new int[] { 0, angleIndex });
+        }
+        return 0.0;
+    }
+
+    public void transformAngles(final INDArray transform) {
+        Nd4j.matmul(_angles, transform, _angles);
+    }
+
+    public int getNumAngles() {
+        return _angles.columns();
     }
 
     /**
@@ -128,16 +175,13 @@ public class DrawableShape {
                 drawPoint2d(g2d, transformed.getColumn(i).getInt(0), transformed.getColumn(i).getInt(1));
             }
 
-            for (int i = 0; i < transformed.columns() / 4; i++) {
-                drawLine(g2d, 0, i, (i + 1) % 4, transformed); // draw back square lines
-                drawLine(g2d, 0, i + 4, ((i + 1) % 4) + 4, transformed); // draw front square lines
-                drawLine(g2d, 0, i, i + 4, transformed); // draw connecting lines
-            }
 
-            for (int i = 0; i < transformed.columns() / 4; i++) {
-                drawLine(g2d, 8, i, (i + 1) % 4, transformed); // draw back square lines
-                drawLine(g2d, 8, i + 4, ((i + 1) % 4) + 4, transformed); // draw front square lines
-                drawLine(g2d, 8, i, i + 4, transformed); // draw connecting lines
+            for (int j = 0; j < 2; j++) {
+                for (int i = 0; i < transformed.columns() / 4; i++) {
+                    drawLine(g2d, j * 8, i, (i + 1) % 4, transformed); // draw back square lines
+                    drawLine(g2d, j * 8, i + 4, ((i + 1) % 4) + 4, transformed); // draw front square lines
+                    drawLine(g2d, j * 8, i, i + 4, transformed); // draw connecting lines
+                }
             }
 
             for (int i = 0; i < transformed.columns() / 2; i++) {
@@ -167,16 +211,28 @@ public class DrawableShape {
             angles[column] = _angles.getColumn(column).getDouble(0);
         }
 
-//        angles[0] += 0.01;
-//        angles[1] = Math.PI / 4;
-//        angles[2] = Math.PI / 4;
-//        angles[3] = Math.PI / 4;
-//        angles[4] = Math.PI / 4;
-//        angles[5] += 0.01;
-
         for (int angle = 0; angle < angles.length; angle++) {
-            angles[angle] += 0.005;
+            if (_anglesProgress[angle]) {
+                angles[angle] += _anglesProgressSpeed[angle];
+
+                if (angles[angle] > 2 * Math.PI) angles[angle] -= 2 * Math.PI;
+                if (angles[angle] < 0) angles[angle] += 2 * Math.PI;
+
+                _angleListeners.get(angle).stateChanged(new ChangeEvent(this));
+            }
             _angles.put(0, angle, angles[angle]);
         }
+    }
+
+    public void setAngleProgress(final int angleIndex, final boolean selected) {
+        _anglesProgress[angleIndex] = selected;
+    }
+
+    public void setAngleProgressSpeed(final int angleIndex, final double speed) {
+        _anglesProgressSpeed[angleIndex] = speed;
+    }
+
+    public void addAngleChangeListener(final ChangeListener listener) {
+        _angleListeners.add(listener);
     }
 }

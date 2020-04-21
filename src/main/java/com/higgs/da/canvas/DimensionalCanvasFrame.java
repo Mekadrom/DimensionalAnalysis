@@ -1,24 +1,34 @@
 package com.higgs.da.canvas;
 
 import com.higgs.da.DimensionalAnalysis;
+import com.higgs.da.DimensionalMatrixHelper;
 import com.higgs.da.DrawableShape;
+import com.higgs.da.Utils;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
+import java.util.List;
 
 public class DimensionalCanvasFrame extends JFrame {
-    private static final Dimension SIZE = new Dimension(800, 800);
+    private static final Dimension SIZE = new Dimension(1200, 800);
 
     private DimensionalCanvas _panel = null;
 
     private static DrawableShape _shape = new DrawableShape(2);
 
+    private AttributeControlsPanel _angleControlsPanel;
+    private AttributeControlsPanel _lengthControlPanel;
+
     public DimensionalCanvasFrame() {
         super("Dimensional Analysis");
 
         setSize(SIZE.width + 100, SIZE.height + 100);
+//        setExtendedState(JFrame.MAXIMIZED_BOTH);
+//        setUndecorated(true);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -30,7 +40,7 @@ public class DimensionalCanvasFrame extends JFrame {
 
         setContentPane(panel);
 
-        setResizable(false);
+//        setResizable(false);
         setEnabled(true);
         setVisible(true);
     }
@@ -40,11 +50,17 @@ public class DimensionalCanvasFrame extends JFrame {
     }
 
     private JPanel getAngleControlPanel() {
-        return new AttributeControlPanel("Angle", new Dimension(120, getHeight()));
+        if (_angleControlsPanel == null) {
+            _angleControlsPanel = new AttributeControlsPanel("Angle", new Dimension(400, getHeight()));
+        }
+        return _angleControlsPanel;
     }
 
     private JPanel getLengthControlPanel() {
-        return new AttributeControlPanel("Side Length", new Dimension(120, getHeight()));
+        if (_lengthControlPanel == null) {
+            _lengthControlPanel = new AttributeControlsPanel("Side Length", new Dimension(400, getHeight()));
+        }
+        return _lengthControlPanel;
     }
 
     /**
@@ -66,10 +82,45 @@ public class DimensionalCanvasFrame extends JFrame {
         return _shape;
     }
 
+    public void resetControls() {
+        resetAngleControls();
+        resetLengthControls();
+    }
+
+    public void resetAngleControls() {
+        _angleControlsPanel.clearControls();
+
+        int numAngles = getDrawableShape().getNumAngles();
+        int numDim = DimensionalMatrixHelper.dimCountFromAngleCount(numAngles);
+
+        final char[] possibleChars = Arrays.copyOfRange(DimensionalMatrixHelper.AXES_ORDER, 0, numDim);
+
+        // minus two because number of dimensions required to define angle is always two less than the number of spatial dimensions
+        int dimCount = numDim - 2;
+
+        final List<String> angleNames = Utils.permute(possibleChars, dimCount, false, false);
+
+        for (int i = 0; i < numAngles; i++) {
+            final AngleControlPanel angleControlPanel = new AngleControlPanel(i, angleNames.get(i));
+            _angleControlsPanel.populate(angleControlPanel);
+
+            getDrawableShape().addAngleChangeListener(changeEvent -> {
+                final Object source = changeEvent.getSource();
+                if (source instanceof DrawableShape) {
+                    final DrawableShape shape = (DrawableShape)source;
+                    angleControlPanel.setAngleValue(shape.getAngle(angleControlPanel.getAngleIndex()));
+                }
+            });
+        }
+    }
+
+    private void resetLengthControls() {
+    }
+
     static class DimensionalCanvas extends JPanel {
         private boolean _stopped = false;
 
-        private  Thread _logicThread;
+        private Thread _logicThread;
 
         public void stop() {
             _stopped = true;
@@ -83,7 +134,7 @@ public class DimensionalCanvasFrame extends JFrame {
         }
 
         /**
-         * Internal start method that takes a list of functions to run every frame, does them in sequential order
+         * Internal start method that takes a list of functions to run every frame and runs them in sequential order
          * @param everyFrameRun a list of runnables to run every frame
          */
         private void start(final Runnable... everyFrameRun) {

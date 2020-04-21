@@ -10,6 +10,8 @@ public class DimensionalMatrixHelper {
     public static final float FRUSTUM_LENGTH_3D = 2.2f;
     public static final float FRUSTUM_LENGTH_4D = 2f;
 
+    public static final char[] AXES_ORDER = "xyzwuvijklmnopqrstabcdefgh".toCharArray();
+
     /**
      * TODO: use this to create rotation matrices dynamically
      * Use to obtain identity rotation matrix and perform transformations

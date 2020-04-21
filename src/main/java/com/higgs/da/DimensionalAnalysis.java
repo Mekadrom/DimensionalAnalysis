@@ -21,6 +21,7 @@ public class DimensionalAnalysis {
             e.printStackTrace();
         }
         _frame = new DimensionalCanvasFrame();
+        resetControls();
         start();
     }
 
@@ -58,5 +59,26 @@ public class DimensionalAnalysis {
 
     public static void setShape(final DrawableShape shape) {
         _frame.setDrawableShape(shape);
+        resetControls();
+    }
+
+    public static void resetControls() {
+        _frame.resetControls();
+    }
+
+    public static void setAngle(final int angleIndex, final double value) {
+        _frame.getDrawableShape().setAngle(angleIndex, value);
+    }
+
+    public static double getAngle(final int angleIndex) {
+        return _frame.getDrawableShape().getAngle(angleIndex);
+    }
+
+    public static void setAngleProgress(final int angleIndex, final boolean selected) {
+        _frame.getDrawableShape().setAngleProgress(angleIndex, selected);
+    }
+
+    public static void setAngleProgressSpeed(final int angleIndex, final double speed) {
+        _frame.getDrawableShape().setAngleProgressSpeed(angleIndex, speed);
     }
 }
