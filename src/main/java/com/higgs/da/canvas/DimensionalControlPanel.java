@@ -24,7 +24,7 @@ public class DimensionalControlPanel extends JPanel {
 
     private void initSelf() {
         setLayout(new FlowLayout(FlowLayout.CENTER));
-//        setLayout(new GridBagLayout());
+//        setLayout(new GridBagLayout()); // fuck grid bags
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 

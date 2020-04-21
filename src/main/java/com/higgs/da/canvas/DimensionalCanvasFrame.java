@@ -1,66 +1,67 @@
 package com.higgs.da.canvas;
 
 import com.higgs.da.DimensionalAnalysis;
-import com.higgs.da.DimensionalMatrixHelper;
 import com.higgs.da.DrawableShape;
-import com.higgs.da.Utils;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
-import java.util.List;
 
 public class DimensionalCanvasFrame extends JFrame {
-    private static final Dimension SIZE = new Dimension(1200, 800);
+    private static final Dimension SIZE = new Dimension(1600, 900);
 
     private DimensionalCanvas _panel = null;
 
     private static DrawableShape _shape = new DrawableShape(2);
 
-    private AttributeControlsPanel _angleControlsPanel;
-    private AttributeControlsPanel _lengthControlPanel;
+    private AngleControlsPanel _angleControlsPanel;
+    private LengthControlsPanel _lengthControlsPanel;
+    private ProjectionControlsPanel _projectionControlsPanel;
+
+    private DimensionalControlPanel _globalControlPanel;
 
     public DimensionalCanvasFrame() {
         super("Dimensional Analysis");
 
         setSize(SIZE.width + 100, SIZE.height + 100);
-//        setExtendedState(JFrame.MAXIMIZED_BOTH);
-//        setUndecorated(true);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         final JPanel panel = new JPanel(new BorderLayout());
 
-        panel.add(getGlobalControlPanel(), BorderLayout.NORTH);
-        panel.add(getAngleControlPanel(), BorderLayout.WEST);
-        panel.add(_panel = new DimensionalCanvas(), BorderLayout.CENTER);
+        resetPanel(panel);
 
-        setContentPane(panel);
-
-//        setResizable(false);
         setEnabled(true);
         setVisible(true);
     }
 
     private JPanel getGlobalControlPanel() {
-        return new DimensionalControlPanel(new Dimension(getWidth(), 100));
+        if (_globalControlPanel == null) {
+            _globalControlPanel = new DimensionalControlPanel(new Dimension(getWidth(), 100));
+        }
+        return _globalControlPanel;
     }
 
     private JPanel getAngleControlPanel() {
         if (_angleControlsPanel == null) {
-            _angleControlsPanel = new AttributeControlsPanel("Angle", new Dimension(400, getHeight()));
+            _angleControlsPanel = new AngleControlsPanel(new Dimension(400, getHeight()));
         }
         return _angleControlsPanel;
     }
 
     private JPanel getLengthControlPanel() {
-        if (_lengthControlPanel == null) {
-            _lengthControlPanel = new AttributeControlsPanel("Side Length", new Dimension(400, getHeight()));
+        if (_lengthControlsPanel == null) {
+            _lengthControlsPanel = new LengthControlsPanel(new Dimension(240, getHeight()));
         }
-        return _lengthControlPanel;
+        return _lengthControlsPanel;
+    }
+
+    private JPanel getProjectionControlsPanel() {
+        if (_projectionControlsPanel == null) {
+            _projectionControlsPanel = new ProjectionControlsPanel(new Dimension(300, getHeight()));
+        }
+        return _projectionControlsPanel;
     }
 
     /**
@@ -85,36 +86,50 @@ public class DimensionalCanvasFrame extends JFrame {
     public void resetControls() {
         resetAngleControls();
         resetLengthControls();
+
+        if (getDrawableShape() != null && getDrawableShape().getNumDimensions() > 2) {
+            resetProjectionControls();
+        } else {
+            getContentPane().remove(getProjectionControlsPanel());
+        }
+
+        resetPanel(getContentPane());
+    }
+
+    private void resetPanel(final Container contentPane) {
+        contentPane.removeAll();
+
+        contentPane.add(getGlobalControlPanel(), BorderLayout.NORTH);
+        contentPane.add(getAngleControlPanel(), BorderLayout.WEST);
+        contentPane.add(getRightControlPanel(), BorderLayout.EAST);
+
+        contentPane.add(_panel = new DimensionalCanvas(), BorderLayout.CENTER);
+
+        setContentPane(contentPane);
+    }
+
+    private JPanel getRightControlPanel() {
+        final JPanel panel = new JPanel(new BorderLayout());
+
+        panel.add(getLengthControlPanel(), BorderLayout.WEST);
+        panel.add(getProjectionControlsPanel(), BorderLayout.EAST);
+
+        return panel;
     }
 
     public void resetAngleControls() {
-        _angleControlsPanel.clearControls();
-
-        int numAngles = getDrawableShape().getNumAngles();
-        int numDim = DimensionalMatrixHelper.dimCountFromAngleCount(numAngles);
-
-        final char[] possibleChars = Arrays.copyOfRange(DimensionalMatrixHelper.AXES_ORDER, 0, numDim);
-
-        // minus two because number of dimensions required to define angle is always two less than the number of spatial dimensions
-        int dimCount = numDim - 2;
-
-        final List<String> angleNames = Utils.permute(possibleChars, dimCount, false, false);
-
-        for (int i = 0; i < numAngles; i++) {
-            final AngleControlPanel angleControlPanel = new AngleControlPanel(i, angleNames.get(i));
-            _angleControlsPanel.populate(angleControlPanel);
-
-            getDrawableShape().addAngleChangeListener(changeEvent -> {
-                final Object source = changeEvent.getSource();
-                if (source instanceof DrawableShape) {
-                    final DrawableShape shape = (DrawableShape)source;
-                    angleControlPanel.setAngleValue(shape.getAngle(angleControlPanel.getAngleIndex()));
-                }
-            });
-        }
+        _angleControlsPanel = new AngleControlsPanel(new Dimension(400, getHeight()));
+        _angleControlsPanel.setShape(_shape);
     }
 
     private void resetLengthControls() {
+        _lengthControlsPanel = new LengthControlsPanel(new Dimension(240, getHeight()));
+        _lengthControlsPanel.setShape(_shape);
+    }
+
+    private void resetProjectionControls() {
+        _projectionControlsPanel = new ProjectionControlsPanel(new Dimension(300, getHeight()));
+        _projectionControlsPanel.setShape(_shape);
     }
 
     static class DimensionalCanvas extends JPanel {
@@ -190,7 +205,7 @@ public class DimensionalCanvasFrame extends JFrame {
          * @return the current frame
          */
         public BufferedImage draw() {
-            final BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+            final BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
 
             final Graphics2D g2d = image.createGraphics();
 

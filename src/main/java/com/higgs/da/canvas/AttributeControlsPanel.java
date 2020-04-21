@@ -1,14 +1,12 @@
 package com.higgs.da.canvas;
 
-import com.higgs.da.DimensionalAnalysis;
-
 import javax.swing.*;
 import java.awt.*;
 
 public class AttributeControlsPanel extends JPanel {
     private String _controlName;
 
-    private JPanel _scrollPanel;
+    protected JPanel _scrollPanel;
 
     public AttributeControlsPanel(final String controlName, final Dimension dimension) {
         _controlName = controlName;
@@ -52,17 +50,5 @@ public class AttributeControlsPanel extends JPanel {
         scrollPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
         return scrollPanel;
-    }
-
-    public void populate(final AttributeControlPanel component) {
-        _scrollPanel.add(component);
-    }
-
-    public void clearControls() {
-        for (final Component c : _scrollPanel.getComponents()) {
-            if (c instanceof AttributeControlPanel) {
-                _scrollPanel.remove(c);
-            }
-        }
     }
 }

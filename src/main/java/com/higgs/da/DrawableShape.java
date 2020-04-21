@@ -1,6 +1,5 @@
 package com.higgs.da;
 
-import com.higgs.da.canvas.AngleChangeListener;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
@@ -20,10 +19,13 @@ public class DrawableShape {
     private double[] _anglesProgressSpeed;
     private List<ChangeListener> _angleListeners = new ArrayList<>();
 
+    private String[] _projectionType;
+
     public DrawableShape(final int ndimensions) {
         _ndimensions = ndimensions;
         initPoints();
         initAngles();
+        initProjections();
     }
 
     /**
@@ -73,6 +75,13 @@ public class DrawableShape {
         Arrays.fill(_anglesProgressSpeed, 0.01);
     }
 
+    private void initProjections() {
+        final int numProjections = _ndimensions - 1;
+        _projectionType = new String[_ndimensions];
+
+        Arrays.fill(_projectionType, DimensionalAnalysis.PERSPECTIVE);
+    }
+
     public void setAngles(final INDArray angles) {
         if (angles.rows() == _angles.rows() && angles.columns() == _angles.columns()) {
             _angles = angles;
@@ -96,8 +105,25 @@ public class DrawableShape {
         return 0.0;
     }
 
+    public void setLength(final int axisIndex, final double value) {
+        for (int i = 0; i < _points.columns(); i++) {
+            final double prevValue = _points.getDouble(axisIndex, i);
+            final int neg = (int) (prevValue / Math.abs(prevValue));
+
+            _points.put(axisIndex, i, (value) * neg);
+        }
+    }
+
+    public double getLength(final int axisIndex) {
+        return _points.getDouble(axisIndex, 0) * 2.0;
+    }
+
     public void transformAngles(final INDArray transform) {
         Nd4j.matmul(_angles, transform, _angles);
+    }
+
+    public int getNumDimensions() {
+        return _ndimensions;
     }
 
     public int getNumAngles() {
@@ -137,7 +163,17 @@ public class DrawableShape {
                 final INDArray point = _points.getColumn(column, true); // the current point
                 final INDArray rotated = DimensionalMatrixHelper.rotate(_angles, point); // the point rotated about the angles
 
-                INDArray projected2d = Nd4j.matmul(DimensionalMatrixHelper.getPerspectiveProjection(_ndimensions, rotated), rotated); // orthographic projection from 3d to 2d
+                final INDArray projection;
+
+                if (DimensionalAnalysis.ORTHOGRAPHIC.equalsIgnoreCase(_projectionType[0])) {
+                    projection = DimensionalMatrixHelper.getOrthographicPerspectiveProjection(3, rotated);
+                } else if (DimensionalAnalysis.PERSPECTIVE.equalsIgnoreCase(_projectionType[0])) {
+                    projection = DimensionalMatrixHelper.getPerspectiveProjection(3, rotated);
+                } else {
+                    projection = DimensionalMatrixHelper.getPerspectiveProjection(3, rotated);
+                }
+
+                INDArray projected2d = Nd4j.matmul(projection, rotated); // orthographic projection from 3d to 2d
                 projected2d = projected2d.mul(DimensionalAnalysis.getDrawScale()); // scale drawing by draw scale
 
                 transformed.putColumn(column, projected2d);
@@ -162,8 +198,27 @@ public class DrawableShape {
 
 //                INDArray projected3d = Nd4j.matmul(PROJECTION_3D, rotated); // "orthographic" projection from 4d to 3d
 
-                INDArray projected3d = Nd4j.matmul(DimensionalMatrixHelper.getOrthographicPerspectiveProjection(_ndimensions, rotated), rotated);
-                INDArray projected2d = Nd4j.matmul(DimensionalMatrixHelper.getOrthographicPerspectiveProjection(_ndimensions - 1, projected3d), projected3d); // orthographic projection from 3d to 2d
+                INDArray projection3d;
+                if (DimensionalAnalysis.ORTHOGRAPHIC.equalsIgnoreCase(_projectionType[1])) {
+                    projection3d = DimensionalMatrixHelper.getOrthographicPerspectiveProjection(4, rotated);
+                } else if (DimensionalAnalysis.PERSPECTIVE.equalsIgnoreCase(_projectionType[1])) {
+                    projection3d = DimensionalMatrixHelper.getPerspectiveProjection(4, rotated);
+                } else {
+                    projection3d = DimensionalMatrixHelper.getPerspectiveProjection(4, rotated);
+                }
+
+                INDArray projected3d = Nd4j.matmul(projection3d, rotated);
+
+                INDArray projection2d;
+                if (DimensionalAnalysis.ORTHOGRAPHIC.equalsIgnoreCase(_projectionType[0])) {
+                    projection2d = DimensionalMatrixHelper.getOrthographicPerspectiveProjection(3, projected3d);
+                } else if (DimensionalAnalysis.PERSPECTIVE.equalsIgnoreCase(_projectionType[0])) {
+                    projection2d = DimensionalMatrixHelper.getPerspectiveProjection(3, projected3d);
+                } else {
+                    projection2d = DimensionalMatrixHelper.getPerspectiveProjection(3, projected3d);
+                }
+
+                INDArray projected2d = Nd4j.matmul(projection2d, projected3d); // orthographic projection from 3d to 2d
 
                 projected2d = projected2d.mul(DimensionalAnalysis.getDrawScale()); // scale drawing by draw scale
 
@@ -234,5 +289,9 @@ public class DrawableShape {
 
     public void addAngleChangeListener(final ChangeListener listener) {
         _angleListeners.add(listener);
+    }
+
+    public void setProjection(final int projectionIndex, final String value) {
+        _projectionType[projectionIndex] = value;
     }
 }

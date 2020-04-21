@@ -6,6 +6,10 @@ import com.higgs.da.canvas.DimensionalCanvasFrame;
 import javax.swing.*;
 
 public class DimensionalAnalysis {
+    public static final String ORTHOGRAPHIC = "Orthogonal";
+    public static final String PERSPECTIVE = "Perspective";
+    public static final String STEREOGRAPHIC = "Stereographic";
+
     private static DimensionalCanvasFrame _frame;
 
     private static int _lineThickness = 1;
@@ -21,7 +25,7 @@ public class DimensionalAnalysis {
             e.printStackTrace();
         }
         _frame = new DimensionalCanvasFrame();
-        resetControls();
+        _frame.resetControls();
         start();
     }
 
@@ -59,11 +63,9 @@ public class DimensionalAnalysis {
 
     public static void setShape(final DrawableShape shape) {
         _frame.setDrawableShape(shape);
-        resetControls();
-    }
-
-    public static void resetControls() {
         _frame.resetControls();
+
+        DimensionalMatrixHelper.initFrustumLengths(shape.getNumDimensions());
     }
 
     public static void setAngle(final int angleIndex, final double value) {
@@ -80,5 +82,17 @@ public class DimensionalAnalysis {
 
     public static void setAngleProgressSpeed(final int angleIndex, final double speed) {
         _frame.getDrawableShape().setAngleProgressSpeed(angleIndex, speed);
+    }
+
+    public static DrawableShape getShape() {
+        return _frame.getDrawableShape();
+    }
+
+    public static void setLength(final int axisIndex, final double value) {
+        _frame.getDrawableShape().setLength(axisIndex, value);
+    }
+
+    public static void setProjection(final int projectionIndex, final String value) {
+        _frame.getDrawableShape().setProjection(projectionIndex, value);
     }
 }

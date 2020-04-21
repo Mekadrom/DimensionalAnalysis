@@ -3,14 +3,21 @@ package com.higgs.da;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import java.util.Arrays;
+
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
 public class DimensionalMatrixHelper {
-    public static final float FRUSTUM_LENGTH_3D = 2.2f;
-    public static final float FRUSTUM_LENGTH_4D = 2f;
+    private static float[] _frustumLengths;
 
     public static final char[] AXES_ORDER = "xyzwuvijklmnopqrstabcdefgh".toCharArray();
+
+    public static void initFrustumLengths(final int numDim) {
+        _frustumLengths = new float[numDim - 1];
+
+        Arrays.fill(_frustumLengths, 2.2f);
+    }
 
     /**
      * TODO: use this to create rotation matrices dynamically
@@ -181,14 +188,14 @@ public class DimensionalMatrixHelper {
     public static INDArray getPerspectiveProjection(final int ndimensions, final INDArray rotated) {
         // TODO: automate creation of these
         if (ndimensions == 3) {
-            float w = 1 / (FRUSTUM_LENGTH_3D - rotated.getColumn(0).getFloat(ndimensions - 1));
+            float w = 1 / (_frustumLengths[0] - rotated.getColumn(0).getFloat(ndimensions - 1));
             final INDArray projection2d = Nd4j.create(new float[] {
                     w, 0, 0,
                     0, w, 0
             }, new int[] { 2, 3 });
             return projection2d;
         } else if (ndimensions == 4) {
-            float w = 1 / (FRUSTUM_LENGTH_4D - rotated.getColumn(0).getFloat(ndimensions - 1));
+            float w = 1 / (_frustumLengths[1] - rotated.getColumn(0).getFloat(ndimensions - 1));
             final INDArray projection3d = Nd4j.create(new float[] {
                     w, 0, 0, 0,
                     0, w, 0, 0,
@@ -216,5 +223,10 @@ public class DimensionalMatrixHelper {
             return projection3d;
         }
         return null;
+    }
+
+    public static void setPerspectiveLength(final int projectionIndex, final Double value) {
+        if (projectionIndex >= _frustumLengths.length) return;
+        _frustumLengths[projectionIndex] = (float)(double) value;
     }
 }
