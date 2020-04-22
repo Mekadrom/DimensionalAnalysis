@@ -6,7 +6,6 @@ import com.higgs.da.DrawableShape;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
 
 public class LengthControlsPanel extends AttributeControlsPanel {
     public LengthControlsPanel(final Dimension dimension) {
@@ -18,7 +17,7 @@ public class LengthControlsPanel extends AttributeControlsPanel {
 
         int numDim = shape.getNumDimensions();
 
-        final char[] dimChars = Arrays.copyOfRange(DimensionalMatrixHelper.AXES_ORDER, 0, numDim);
+        final char[] dimChars = DimensionalMatrixHelper.getAxes(numDim);
 
         for (int i = 0; i < numDim; i++) {
             _scrollPanel.add(new LengthControlPanel(i, dimChars[i]));

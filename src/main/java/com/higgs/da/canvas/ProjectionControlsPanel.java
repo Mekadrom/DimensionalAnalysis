@@ -7,6 +7,7 @@ import com.higgs.da.DrawableShape;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ProjectionControlsPanel extends AttributeControlsPanel {
@@ -35,13 +36,11 @@ public class ProjectionControlsPanel extends AttributeControlsPanel {
         private JSpinner _projectionType;
         private JSpinner _frustumLength;
 
-        private static final List<String> options = new ArrayList<>();
-
-        static {
-            options.add(DimensionalAnalysis.PERSPECTIVE);
-            options.add(DimensionalAnalysis.ORTHOGRAPHIC);
-            options.add(DimensionalAnalysis.STEREOGRAPHIC);
-        }
+        private static final List<String> _options = Arrays.asList(
+            DimensionalAnalysis.PERSPECTIVE,
+            DimensionalAnalysis.ORTHOGRAPHIC,
+            DimensionalAnalysis.STEREOGRAPHIC
+        );
 
         public ProjectionControlPanel(final int projectionIndex, final int higherDim, final int lowerDim) {
             _projectionIndex = projectionIndex;
@@ -59,10 +58,10 @@ public class ProjectionControlsPanel extends AttributeControlsPanel {
             final JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
             final JLabel label = new JLabel("Projection from " + _higherDim + "D to " + _lowerDim + "D :");
-            _projectionType = new JSpinner(new SpinnerListModel(options));
+            _projectionType = new JSpinner(new SpinnerListModel(_options));
 
             final JLabel frustumLabel = new JLabel("Projection Distance:");
-            _frustumLength = new JSpinner(new SpinnerNumberModel(2.2, 0.1, 10.0, 0.1));
+            _frustumLength = new JSpinner(new SpinnerNumberModel(DimensionalMatrixHelper.DEFAULT_FRUSTUM_LENGTH, 0.1, 10.0, 0.1));
 
             topPanel.add(label);
             topPanel.add(_projectionType);
@@ -86,7 +85,7 @@ public class ProjectionControlsPanel extends AttributeControlsPanel {
             });
 
             _frustumLength.addChangeListener(changeEvent -> {
-                DimensionalMatrixHelper.setPerspectiveLength(_projectionIndex, (Double) _frustumLength.getValue());
+                DimensionalAnalysis.setPerspectiveLength(_projectionIndex, (Double) _frustumLength.getValue());
                 revalidate();
                 repaint();
             });

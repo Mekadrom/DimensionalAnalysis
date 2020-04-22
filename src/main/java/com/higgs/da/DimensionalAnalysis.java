@@ -14,7 +14,7 @@ public class DimensionalAnalysis {
 
     private static int _lineThickness = 1;
 
-    private static int _pointSize = 8;
+    private static int _pointSize = 1;
 
     private static int _drawScale = 100;
 
@@ -64,8 +64,6 @@ public class DimensionalAnalysis {
     public static void setShape(final DrawableShape shape) {
         _frame.setDrawableShape(shape);
         _frame.resetControls();
-
-        DimensionalMatrixHelper.initFrustumLengths(shape.getNumDimensions());
     }
 
     public static void setAngle(final int angleIndex, final double value) {
@@ -94,5 +92,9 @@ public class DimensionalAnalysis {
 
     public static void setProjection(final int projectionIndex, final String value) {
         _frame.getDrawableShape().setProjection(projectionIndex, value);
+    }
+
+    public static void setPerspectiveLength(final int projectionIndex, final Double value) {
+        _frame.getDrawableShape().setPerspectiveLength(projectionIndex, value);
     }
 }

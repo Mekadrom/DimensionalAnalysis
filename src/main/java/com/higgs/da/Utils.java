@@ -1,6 +1,7 @@
 package com.higgs.da;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class Utils {
     private static final int[] _factorials = new int[] {
@@ -18,6 +19,18 @@ public class Utils {
             2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11,
             2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12
     };
+
+    public static int charToInt(final char c) {
+        return Integer.parseInt(String.valueOf(c));
+    }
+
+    public static void twoDimensionIter(final BiConsumer<Integer, Integer> consumer, final int firstD, final int secondD) {
+        for (int i = 0; i < firstD; i++) {
+            for (int j = 0; j < secondD; j++) {
+                consumer.accept(i, j);
+            }
+        }
+    }
 
     public int factorial(int num) {
         if (num < 0) return -factorial(Math.abs(num));
@@ -99,6 +112,12 @@ public class Utils {
 
     private static List<String> permute(final char[] possibles, int r) {
         return new Permutator(possibles, r).permutations;
+    }
+
+    public static boolean numArrayContains(final int num, final int[] array) {
+        for (int i : array)
+            if (i == num) return true;
+        return false;
     }
 
     private static class Permutator {

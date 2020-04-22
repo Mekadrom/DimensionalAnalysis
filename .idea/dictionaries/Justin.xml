@@ -2,14 +2,19 @@
   <dictionary name="Justin">
     <words>
       <w>descr</w>
+      <w>iter</w>
       <w>multipled</w>
       <w>nangles</w>
       <w>ndimensions</w>
+      <w>nums</w>
+      <w>ortho</w>
       <w>permutator</w>
+      <w>persp</w>
       <w>prog</w>
       <w>rotator</w>
       <w>tesseract</w>
       <w>xyzwu</w>
+      <w>xyzwuvijklmnopqrstabcdefgh</w>
     </words>
   </dictionary>
 </component>

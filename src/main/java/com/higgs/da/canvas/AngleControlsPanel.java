@@ -9,7 +9,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.util.Arrays;
 import java.util.List;
 
 public class AngleControlsPanel extends AttributeControlsPanel {
@@ -23,7 +22,7 @@ public class AngleControlsPanel extends AttributeControlsPanel {
         int numAngles = shape.getNumAngles();
         int numDim = shape.getNumDimensions(); // DimensionalMatrixHelper.dimCountFromAngleCount(numAngles);
 
-        final char[] possibleChars = Arrays.copyOfRange(DimensionalMatrixHelper.AXES_ORDER, 0, numDim);
+        final char[] possibleChars = DimensionalMatrixHelper.getAxes(numDim);
 
         // minus two because number of dimensions required to define angle is always two less than the number of spatial dimensions
         int dimCount = numDim - 2;
@@ -51,6 +50,7 @@ public class AngleControlsPanel extends AttributeControlsPanel {
         private JSlider _slider;
         private JCheckBox _progress;
         private JSpinner _valueDisplay;
+        private JSpinner _progressStep;
 
         public AngleControlPanel(final int angleIndex, final String suffix) {
             _angleIndex = angleIndex;
@@ -65,22 +65,21 @@ public class AngleControlsPanel extends AttributeControlsPanel {
             final JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
             final JPanel middlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-            final JLabel label = new JLabel("Angle " + _suffix.toUpperCase());
-
             _slider = new JSlider(0, 360, 0);
 
-            final SpinnerNumberModel model = new SpinnerNumberModel(0, 0, 360, 1);
-            _valueDisplay = new JSpinner(model);
+            _valueDisplay = new JSpinner(new SpinnerNumberModel(0, 0, 360, 1));
 
-            final JLabel progressCheckBoxLabel = new JLabel("Progress");
-            _progress = new JCheckBox();
-            _progress.setSelected(true);
+            _progress = new JCheckBox("Progress", true);
+//            _progress.setSelected(true);
 
-            topPanel.add(label);
+            _progressStep = new JSpinner(new SpinnerNumberModel(45, 0, 360, 1));
+
+            topPanel.add(new JLabel("Angle " + _suffix.toUpperCase()));
             topPanel.add(_slider);
             topPanel.add(_valueDisplay);
-            middlePanel.add(progressCheckBoxLabel);
             middlePanel.add(_progress);
+            middlePanel.add(_progressStep);
+            middlePanel.add(new JLabel("deg/s"));
 
             setSize(100, 50);
 
@@ -100,14 +99,28 @@ public class AngleControlsPanel extends AttributeControlsPanel {
             });
 
             _slider.addFocusListener(new FocusAdapter() {
-                public void focusGained(final FocusEvent focusEvent) {
+                public void focusGained(final FocusEvent e) {
                     _progress.setSelected(false);
                 }
             });
 
+            _valueDisplay.addChangeListener(changeEvent -> _slider.setValue((int) _valueDisplay.getValue()));
+
             _progress.addChangeListener(changeEvent -> DimensionalAnalysis.setAngleProgress(_angleIndex, _progress.isSelected()));
 
-            _valueDisplay.addChangeListener(changeEvent -> _slider.setValue((int) _valueDisplay.getValue()));
+            _progressStep.addChangeListener(changeEvent -> {
+                if ((int) _progressStep.getValue() < 1) {
+                    _progressStep.setValue(1);
+                    _progress.setSelected(false);
+                }
+                DimensionalAnalysis.setAngleProgressSpeed(_angleIndex, Math.toRadians((int) _progressStep.getValue()) / 60.0);
+            });
+
+            _progressStep.addFocusListener(new FocusAdapter() {
+                public void focusGained(final FocusEvent e) {
+                    _progress.setSelected(true);
+                }
+            });
         }
 
         public void setAngleValue(final double value) {

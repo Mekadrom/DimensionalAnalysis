@@ -7,10 +7,10 @@ import javax.swing.*;
 import java.awt.*;
 
 public class DimensionalControlPanel extends JPanel {
-    private JSlider _dimSlider;
-    private JSlider _lineThickSlider;
-    private JSlider _pointSizeSlider;
-    private JSlider _drawScaleSlider;
+    private JSpinner _numDim;
+    private JSlider _lineThickness;
+    private JSlider _pointSize;
+    private JSlider _drawScale;
 
     public DimensionalControlPanel(final Dimension size) {
         setSize(size);
@@ -30,39 +30,36 @@ public class DimensionalControlPanel extends JPanel {
 
     private void initComponents() {
         final JLabel dimLabel = new JLabel("# of dimensions:");
-        _dimSlider = new JSlider(SwingConstants.HORIZONTAL, 2, 4, 2);
+        _numDim = new JSpinner(new SpinnerNumberModel(2, 2, 26, 1));
 
         final JLabel lineThickLabel = new JLabel("Line Thickness:");
-        _lineThickSlider = new JSlider(SwingConstants.HORIZONTAL, 1, 20, 1);
+        _lineThickness = new JSlider(SwingConstants.HORIZONTAL, 1, 20, 1);
 
         final JLabel pointSizeLabel = new JLabel("Point Size:");
-        _pointSizeSlider = new JSlider(SwingConstants.HORIZONTAL, 1, 20, 8);
+        _pointSize = new JSlider(SwingConstants.HORIZONTAL, 1, 20, 1);
 
         final JLabel drawScaleLabel = new JLabel("Draw Scale:");
-        _drawScaleSlider = new JSlider(SwingConstants.HORIZONTAL, 1, 500, 100);
+        _drawScale = new JSlider(SwingConstants.HORIZONTAL, 1, 500, 100);
 
         add(dimLabel);
-        add(_dimSlider);
+        add(_numDim);
         add(lineThickLabel);
-        add(_lineThickSlider);
+        add(_lineThickness);
         add(pointSizeLabel);
-        add(_pointSizeSlider);
+        add(_pointSize);
         add(drawScaleLabel);
-        add(_drawScaleSlider);
+        add(_drawScale);
     }
 
     private void initActionListeners() {
-        _dimSlider.addChangeListener(changeEvent -> {
-            final JSlider source = (JSlider)changeEvent.getSource();
-            if (!source.getValueIsAdjusting()) {
-                DimensionalAnalysis.stop();
-                DimensionalAnalysis.setShape(new DrawableShape(_dimSlider.getValue()));
-                DimensionalAnalysis.start();
-            }
+        _numDim.addChangeListener(changeEvent -> {
+            DimensionalAnalysis.stop();
+            DimensionalAnalysis.setShape(new DrawableShape((int) _numDim.getValue()));
+            DimensionalAnalysis.start();
         });
 
-        _lineThickSlider.addChangeListener(changeEvent -> DimensionalAnalysis.setLineThickness(_lineThickSlider.getValue()));
-        _pointSizeSlider.addChangeListener(changeEvent -> DimensionalAnalysis.setPointSize(_pointSizeSlider.getValue()));
-        _drawScaleSlider.addChangeListener(changeEvent -> DimensionalAnalysis.setDrawScale(_drawScaleSlider.getValue()));
+        _lineThickness.addChangeListener(changeEvent -> DimensionalAnalysis.setLineThickness(_lineThickness.getValue()));
+        _pointSize.addChangeListener(changeEvent -> DimensionalAnalysis.setPointSize(_pointSize.getValue()));
+        _drawScale.addChangeListener(changeEvent -> DimensionalAnalysis.setDrawScale(_drawScale.getValue()));
     }
 }

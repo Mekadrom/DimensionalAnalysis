@@ -159,26 +159,24 @@ public class DimensionalCanvasFrame extends JFrame {
                     final int TARGET_FPS = 60;
                     final long OPTIMAL_TIME = 1000000000L / TARGET_FPS;
 
-                    while (DimensionalCanvas.this.isVisible()) {
-                        if (!_stopped) {
-                            long start = System.nanoTime(), delta;
+                    while (DimensionalCanvas.this.isVisible() && !_stopped) {
+                        long start = System.nanoTime(), delta;
 
-                            Arrays.stream(everyFrameRun).forEach(Runnable::run);
+                        Arrays.stream(everyFrameRun).forEach(Runnable::run);
 
-                            delta = OPTIMAL_TIME - (System.nanoTime() - start);
-                            if (delta >= 0) {
-                                try {
-                                    Thread.sleep(delta / 1000000L);
-                                } catch (final InterruptedException e) {
-                                    System.out.println("Error keeping fps at 60");
-                                    e.printStackTrace();
-                                }
-                            } else {
-                                Thread.yield();
+                        delta = OPTIMAL_TIME - (System.nanoTime() - start);
+                        if (delta >= 0) {
+                            try {
+                                Thread.sleep(delta / 1000000L);
+                            } catch (final InterruptedException e) {
+                                System.out.println("Error keeping fps at 60");
+                                e.printStackTrace();
                             }
+                        } else {
+                            Thread.yield();
                         }
                     }
-                });
+                }, "DCP Action Thread");
                 _logicThread.start();
             }
         }
@@ -214,7 +212,7 @@ public class DimensionalCanvasFrame extends JFrame {
 
             g2d.setColor(Color.WHITE);
             g2d.translate(getSize().width / 2, getSize().height / 2);
-            g2d.setStroke(new BasicStroke(DimensionalAnalysis.getLineThickness()));
+            g2d.setStroke(new BasicStroke((float) DimensionalAnalysis.getLineThickness(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             _shape.draw(g2d);
             g2d.translate(-getSize().width / 2, -getSize().height / 2);
 
