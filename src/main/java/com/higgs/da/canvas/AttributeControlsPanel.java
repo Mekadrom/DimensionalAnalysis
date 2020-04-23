@@ -32,7 +32,7 @@ public class AttributeControlsPanel extends JPanel {
         final JLabel slidersLabel = new JLabel(_controlName + " Controls");
         final JSeparator separator = new JSeparator();
 
-        panel.add(slidersLabel, BorderLayout.CENTER);
+        panel.add(slidersLabel, BorderLayout.WEST);
         panel.add(separator, BorderLayout.SOUTH);
 
         panel.setSize(getWidth(), 50);
@@ -50,6 +50,8 @@ public class AttributeControlsPanel extends JPanel {
 
         scrollPanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         scrollPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
+        scrollPanel.getVerticalScrollBar().setUnitIncrement(16);
 
         return scrollPanel;
     }

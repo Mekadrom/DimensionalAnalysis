@@ -38,7 +38,6 @@ public class DrawableShape {
 
     private static INDArray getNDimensionalUnitShape(final int numDim) {
         final INDArray points = Nd4j.ones(new int [] { numDim, (int) Math.round(Math.pow(2, numDim)) });
-
         for (int i = 0; i < points.rows(); i++) {
             boolean neg = true;
             for (int j = 0; j < points.columns(); j++) {
@@ -50,28 +49,6 @@ public class DrawableShape {
         }
         return points;
     }
-
-    /**
-     *             _points = Nd4j.create(new float[] {
-     *                     -1, 1,
-     *                     -1, -1
-     *             }, new int[] { 2, 2 });
-     *             _points = Nd4j.create(new float[] {
-     *                     -1,  1, 1, -1, // x
-     *                     -1, -1, 1,  1  // y
-     *             }, new int[] { 2, 4 });
-     *             _points = Nd4j.create(new float[] {
-     *                     -1,  1,  1, -1, -1,  1, 1, -1, // x
-     *                     -1, -1,  1,  1, -1, -1, 1,  1, // y
-     *                     -1, -1, -1, -1,  1,  1, 1,  1  // z
-     *             }, new int[] { 3, 8 });
-     *             _points = Nd4j.create(new float[] {
-     *                     -1,  1,  1, -1, -1,  1,  1, -1, -1,  1,  1, -1, -1,  1, 1, -1, // x
-     *                     -1, -1,  1,  1, -1, -1,  1,  1, -1, -1,  1,  1, -1, -1, 1,  1, // y
-     *                     -1, -1, -1, -1,  1,  1,  1,  1, -1, -1, -1, -1,  1,  1, 1,  1, // z
-     *                     -1, -1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1,  1, 1,  1  // w
-     *             }, new int[] { 4, 16 });
-     */
 
     private void initAngles() {
         final int numAngles = DimensionalMatrixHelper.angleCountFromDimCount(_numDim);
@@ -168,7 +145,12 @@ public class DrawableShape {
 
     private void drawShape(final Graphics2D g2d, final INDArray transformed) {
         drawPoints(g2d, transformed);
-        drawNDimShape(g2d, _numDim, transformed);
+
+        final INDArray firstHalf = Nd4j.create(new int[] { transformed.rows(), transformed.columns() / 2 });
+        final INDArray secondHalf = Nd4j.create(new int[] { transformed.rows(), transformed.columns() / 2 });
+
+        DimensionalMatrixHelper.bisectMatrixColumnWise(firstHalf, secondHalf, transformed);
+        drawNDimShape(g2d, _numDim, new INDArray[] { firstHalf, secondHalf });
     }
 
     private void drawPoints(final Graphics2D g2d, final INDArray transformed) {
@@ -184,21 +166,22 @@ public class DrawableShape {
                         DimensionalAnalysis.getPointSize());
     }
 
-    private void drawNDimShape(final Graphics2D g2d, final int numDim, final INDArray points) {
-        if (numDim == 1) {
-            drawNDimLine(g2d, points.getColumn(0), points.getColumn(1));
-        } else {
-            final INDArray firstHalf = Nd4j.create(new int[] { points.rows(), points.columns() / 2 });
-            final INDArray secondHalf = Nd4j.create(new int[] { points.rows(), points.columns() / 2 });
+    private void drawNDimShape(final Graphics2D g2d, final int numDim, final INDArray[] shapes) {
+        // draw connecting lines
+        for (int i = 0; i < shapes[0].columns(); i++) {
+            drawNDimLine(g2d, shapes[0].getColumn(i), shapes[1].getColumn(i));
+        }
 
-            DimensionalMatrixHelper.bisectMatrixColumnWise(firstHalf, secondHalf, points);
+        for (final INDArray shape : shapes) {
+            if (numDim == 1) {
+                drawNDimLine(g2d, shapes[0].getColumn(0), shapes[1].getColumn(0));
+            } else {
+                final INDArray firstHalf = Nd4j.create(new int[] { shape.rows(), shape.columns() / 2 });
+                final INDArray secondHalf = Nd4j.create(new int[] { shape.rows(), shape.columns() / 2 });
+                DimensionalMatrixHelper.bisectMatrixColumnWise(firstHalf, secondHalf, shape);
 
-            drawNDimShape(g2d, numDim - 1, firstHalf);
-            drawNDimShape(g2d, numDim - 1, secondHalf);
-
-            // draw connecting lines
-            for (int i = 0; i < points.columns() / 2; i++) {
-                drawNDimLine(g2d, points.getColumn(i), points.getColumn((int) Math.round(i + Math.pow(2, numDim - 1))));
+                // draw component shapes
+                drawNDimShape(g2d, numDim - 1, new INDArray[] { firstHalf, secondHalf });
             }
         }
     }
@@ -218,21 +201,16 @@ public class DrawableShape {
     public void update() {
         if (_angleListeners.size() != _angles.columns()) return;
 
-        double[] angles = new double[_angles.columns()];
-        for (int column = 0; column < _angles.columns(); column++) {
-            angles[column] = _angles.getColumn(column).getDouble(0);
-        }
+        for (int i = 0; i < _angles.columns(); i++) {
+            if (_anglesProgress[i]) {
+                double angle = _angles.getColumn(i).getDouble(0) + _anglesProgressSpeed[i];
 
-        for (int angle = 0; angle < angles.length; angle++) {
-            if (_anglesProgress[angle]) {
-                angles[angle] += _anglesProgressSpeed[angle];
+                if (angle > 2 * Math.PI) angle -= 2 * Math.PI;
+                if (angle < 0) angle += 2 * Math.PI;
 
-                if (angles[angle] > 2 * Math.PI) angles[angle] -= 2 * Math.PI;
-                if (angles[angle] < 0) angles[angle] += 2 * Math.PI;
-
-                _angleListeners.get(angle).stateChanged(new ChangeEvent(this));
+                _angleListeners.get(i).stateChanged(new ChangeEvent(this));
+                _angles.put(0, i, angle);
             }
-            _angles.put(0, angle, angles[angle]);
         }
     }
 

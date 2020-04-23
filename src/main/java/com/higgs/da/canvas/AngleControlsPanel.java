@@ -9,7 +9,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class AngleControlsPanel extends AttributeControlsPanel {
@@ -22,15 +21,11 @@ public class AngleControlsPanel extends AttributeControlsPanel {
     }
 
     private void init() {
-        final JButton _stopProgressing = new JButton("Stop");
+        final JButton _stopProgressing = new JButton("Toggle Progress All");
 
-        _stopProgressing.addActionListener(actionEvent -> {
-            for (final AngleControlPanel control : _controls) {
-                control.setProgress(false);
-            }
-        });
+        _stopProgressing.addActionListener(actionEvent -> _controls.forEach(AngleControlPanel::toggleProgress));
 
-        _headerPanel.add(_stopProgressing);
+        _headerPanel.add(_stopProgressing, BorderLayout.EAST);
     }
 
     public void setShape(final DrawableShape shape) {
@@ -83,6 +78,7 @@ public class AngleControlsPanel extends AttributeControlsPanel {
         private final List<AngleControlPanel> _otherPanels = new ArrayList<>();
 
         private JComboBox<String> _syncBox;
+        private JLabel _syncLabel;
 
         public AngleControlPanel(final int angleIndex, final String suffix) {
             _angleIndex = angleIndex;
@@ -108,6 +104,10 @@ public class AngleControlsPanel extends AttributeControlsPanel {
 
             _progressStep = new JSpinner(new SpinnerNumberModel(45, 0, 360, 1));
 
+            _syncLabel = new JLabel("Sync with:");
+            _syncLabel.setEnabled(false);
+            _syncLabel.setVisible(false);
+
             _syncBox = new JComboBox<>();
             _syncBox.setEnabled(false);
             _syncBox.setVisible(false);
@@ -118,7 +118,7 @@ public class AngleControlsPanel extends AttributeControlsPanel {
             middlePanel.add(_progress);
             middlePanel.add(_progressStep);
             middlePanel.add(new JLabel("deg/s"));
-            middlePanel.add(new JLabel("Sync with:"));
+            middlePanel.add(_syncLabel);
             middlePanel.add(_syncBox);
 
             setSize(100, 50);
@@ -204,12 +204,14 @@ public class AngleControlsPanel extends AttributeControlsPanel {
                 if (_otherPanels.size() > 0) {
                     _syncBox.setVisible(true);
                     _syncBox.setEnabled(true);
+                    _syncLabel.setVisible(true);
+                    _syncLabel.setEnabled(true);
                 }
             }
         }
 
-        public void setProgress(final boolean progress) {
-            _progress.setSelected(progress);
+        public void toggleProgress() {
+            _progress.doClick();
         }
     }
 }

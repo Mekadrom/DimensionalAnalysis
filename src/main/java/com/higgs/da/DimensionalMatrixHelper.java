@@ -1,9 +1,11 @@
 package com.higgs.da;
 
+import org.nd4j.linalg.api.buffer.DataBuffer;
 import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,13 +18,12 @@ public class DimensionalMatrixHelper {
     // starting frustum length for every possible perspective projection
     public static final float DEFAULT_FRUSTUM_LENGTH = 1.8f;
 
-    private static INDArray[] _orthoMatrices;
 
-    public static void preload(int maxD) {
-        _orthoMatrices = new INDArray[maxD];
-        for (int i = 3; i < maxD; i++) {
-            _orthoMatrices[i - 3] = getOrthographicProjection(i);
-        }
+    private static List<String> _dimPerm = new ArrayList<>();
+
+    public static void preload(int numDim) {
+        // retrieve a list of all permutations of each dimension in the possible axes (up to 26) in combinations of 2
+        _dimPerm = Utils.permute(getAxes(numDim), 2, false, false);
     }
 
     public static INDArray transform(final INDArray angles, final INDArray point, final String[] projections, final float[] fLengths) {
@@ -38,7 +39,7 @@ public class DimensionalMatrixHelper {
             if (DimensionalAnalysis.PERSPECTIVE.equalsIgnoreCase(pType)) {
                 projected = Nd4j.matmul(getPerspectiveProjection(projected, fLength), projected);
             } else {
-                projected = Nd4j.matmul(_orthoMatrices[dim - 3], projected);
+                projected = Nd4j.matmul(getOrthographicProjection(dim), projected);
             }
         }
         return projected;
@@ -69,13 +70,10 @@ public class DimensionalMatrixHelper {
     private static INDArray[] getRotationMatrices(final INDArray angles) {
         int numDim = dimCountFromAngleCount(angles.columns()); // get numDim from number of angles
 
-        // retrieve a list of all permutations of each dimension in the possible axes (up to 26) in combinations of 2
-        final List<String> permutations = Utils.permute(getAxes(numDim), 2, false, false);
-
         // for every angle value there are two dimensions that are rotated about; this 2d int array stores that info
         final int[][] dimRotateAbout = new int[angles.columns()][2];
-        for (int i = 0; i < permutations.size(); i++) {
-            final String permutation = permutations.get(i);
+        for (int i = 0; i < _dimPerm.size(); i++) {
+            final String permutation = _dimPerm.get(i);
             for (int j = 0; j < permutation.length(); j++) {
                 dimRotateAbout[i][j] = AXES_ORDER.indexOf(permutation.charAt(j));
             }
@@ -98,23 +96,23 @@ public class DimensionalMatrixHelper {
      * @param angle the angle value to use in cosine and sine calculations
      * @param numDim the number of dimensions
      * @param rotateAbout an array of size [2] that contains the two dimensions to rotate about
-     * @return
+     * @return the rotation matrix for the given angle, number of dimensions, and dimensions to rotate with
      */
     private static INDArray getRotationMatrix(final double angle, final int numDim, final int[] rotateAbout) {
-        final INDArray rotMat = fillArrayAxially(1, numDim, numDim);
-        Utils.twoDimensionIter((i, j) -> {
-            if ((i == rotateAbout[0] && j == rotateAbout[0]) || (i == rotateAbout[1] && j == rotateAbout[1])) {
-                rotMat.put(i, j, Math.cos(angle));
-            } else if (i == rotateAbout[0] && j == rotateAbout[1]) {
-                rotMat.put(i, j, -Math.sin(angle));
-            } else if (i == rotateAbout[1] && j == rotateAbout[0]) {
-                rotMat.put(i, j, Math.sin(angle));
-            } else if (i.equals(j)) {
-                rotMat.put(i, j, 1.0);
-            } else {
-                rotMat.put(i, j, 0.0);
+        final INDArray rotMat = Nd4j.zeros(new int[] { numDim, numDim });
+        for (int i = 0; i < numDim; i++) {
+            for (int j = 0; j < numDim; j++) {
+                if ((i == rotateAbout[0] && j == rotateAbout[0]) || (i == rotateAbout[1] && j == rotateAbout[1])) {
+                    rotMat.put(i, j,  Math.cos(angle));
+                } else if (i == rotateAbout[0] && j == rotateAbout[1]) {
+                    rotMat.put(i, j, -Math.sin(angle));
+                } else if (i == rotateAbout[1] && j == rotateAbout[0]) {
+                    rotMat.put(i, j,  Math.sin(angle));
+                } else if (i == j) {
+                    rotMat.put(i, j, 1.0);
+                }
             }
-        }, rotMat.rows(), rotMat.columns());
+        }
         return rotMat;
     }
 

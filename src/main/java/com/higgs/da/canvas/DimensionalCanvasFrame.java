@@ -1,6 +1,7 @@
 package com.higgs.da.canvas;
 
 import com.higgs.da.DimensionalAnalysis;
+import com.higgs.da.DimensionalMatrixHelper;
 import com.higgs.da.DrawableShape;
 
 import javax.swing.*;
@@ -24,6 +25,7 @@ public class DimensionalCanvasFrame extends JFrame {
     public DimensionalCanvasFrame() {
         super("Dimensional Analysis");
 
+        DimensionalMatrixHelper.preload(2);
         init();
     }
 
@@ -89,7 +91,7 @@ public class DimensionalCanvasFrame extends JFrame {
         resetAngleControls();
         resetLengthControls();
 
-        if (getDrawableShape() != null && getDrawableShape().getNumDimensions() > 2) {
+        if (getDrawableShape() != null) {
             resetProjectionControls();
         } else {
             getContentPane().remove(getProjectionControlsPanel());
@@ -140,6 +142,8 @@ public class DimensionalCanvasFrame extends JFrame {
 
         private Thread _logicThread;
 
+        private String _fps = "";
+
         public void stop() {
             _stopped = true;
         }
@@ -156,27 +160,30 @@ public class DimensionalCanvasFrame extends JFrame {
          * @param everyFrameRun a list of runnables to run every frame
          */
         private void start(final Runnable... everyFrameRun) {
+            final double TARGET_FPS = 60.0;
+            final double OPTIMAL_TIME = 1000000000.0 / TARGET_FPS;
+
             _stopped = false;
             if (_logicThread == null) {
                 _logicThread = new Thread(() -> {
-                    final int TARGET_FPS = 60;
-                    final long OPTIMAL_TIME = 1000000000L / TARGET_FPS;
+                    long before;
+                    long timer = System.currentTimeMillis();
+                    double delta = 0;
+                    int frames = 0;
 
                     while (DimensionalCanvas.this.isVisible() && !_stopped) {
-                        long start = System.nanoTime(), delta;
+                        before = System.nanoTime();
+                        if (delta >= 1) {
+                            Arrays.stream(everyFrameRun).forEach(Runnable::run);
+                            frames++;
+                            delta--;
+                        }
+                        delta += (System.nanoTime() - before) / OPTIMAL_TIME;
 
-                        Arrays.stream(everyFrameRun).forEach(Runnable::run);
-
-                        delta = OPTIMAL_TIME - (System.nanoTime() - start);
-                        if (delta >= 0) {
-                            try {
-                                Thread.sleep(delta / 1000000L);
-                            } catch (final InterruptedException e) {
-                                System.out.println("Error keeping fps at 60");
-                                e.printStackTrace();
-                            }
-                        } else {
-                            Thread.yield();
+                        if (System.currentTimeMillis() - timer > 1000) {
+//                            _fps = String.valueOf(frames);
+                            frames = 0;
+                            timer += 1000;
                         }
                     }
                 }, "DCP Action Thread");
@@ -214,6 +221,9 @@ public class DimensionalCanvasFrame extends JFrame {
             g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
 
             g2d.setColor(Color.WHITE);
+
+            g2d.drawString(_fps, 2, 12);
+
             g2d.translate(getSize().width / 2, getSize().height / 2);
             g2d.setStroke(new BasicStroke((float) DimensionalAnalysis.getLineThickness(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             _shape.draw(g2d);

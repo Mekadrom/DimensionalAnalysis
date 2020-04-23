@@ -1,6 +1,7 @@
 package com.higgs.da.canvas;
 
 import com.higgs.da.DimensionalAnalysis;
+import com.higgs.da.DimensionalMatrixHelper;
 import com.higgs.da.DrawableShape;
 
 import javax.swing.*;
@@ -54,6 +55,7 @@ public class DimensionalControlPanel extends JPanel {
     private void initActionListeners() {
         _numDim.addChangeListener(changeEvent -> {
             DimensionalAnalysis.stop();
+            DimensionalMatrixHelper.preload((int) _numDim.getValue());
             DimensionalAnalysis.setShape(new DrawableShape((int) _numDim.getValue()));
             DimensionalAnalysis.start();
         });
