@@ -20,7 +20,7 @@ public class LengthControlsPanel extends AttributeControlsPanel {
         final char[] dimChars = DimensionalMatrixHelper.getAxes(numDim);
 
         for (int i = 0; i < numDim; i++) {
-            _scrollPanel.add(new LengthControlPanel(i, dimChars[i]));
+            _scrollablePanel.add(new LengthControlPanel(i, dimChars[i]));
         }
     }
 

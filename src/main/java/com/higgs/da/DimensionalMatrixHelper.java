@@ -16,6 +16,15 @@ public class DimensionalMatrixHelper {
     // starting frustum length for every possible perspective projection
     public static final float DEFAULT_FRUSTUM_LENGTH = 1.8f;
 
+    private static INDArray[] _orthoMatrices;
+
+    public static void preload(int maxD) {
+        _orthoMatrices = new INDArray[maxD];
+        for (int i = 3; i < maxD; i++) {
+            _orthoMatrices[i - 3] = getOrthographicProjection(i);
+        }
+    }
+
     public static INDArray transform(final INDArray angles, final INDArray point, final String[] projections, final float[] fLengths) {
         final int dimNum = dimCountFromAngleCount(angles.columns());
         return project(rotate(angles, point), projections, fLengths).mul(DimensionalAnalysis.getDrawScale() * (2 * Math.pow(DEFAULT_FRUSTUM_LENGTH, dimNum) / dimNum));
@@ -29,7 +38,7 @@ public class DimensionalMatrixHelper {
             if (DimensionalAnalysis.PERSPECTIVE.equalsIgnoreCase(pType)) {
                 projected = Nd4j.matmul(getPerspectiveProjection(projected, fLength), projected);
             } else {
-                projected = Nd4j.matmul(getOrthographicProjection(dim), projected);
+                projected = Nd4j.matmul(_orthoMatrices[dim - 3], projected);
             }
         }
         return projected;

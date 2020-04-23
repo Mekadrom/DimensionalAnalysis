@@ -6,7 +6,6 @@ import com.higgs.da.DrawableShape;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,7 +22,7 @@ public class ProjectionControlsPanel extends AttributeControlsPanel {
         int index = 0;
 
         for (int i = numDim; i > 2; i--) {
-            _scrollPanel.add(new ProjectionControlPanel(index++, i, i - 1));
+            _scrollablePanel.add(new ProjectionControlPanel(index++, i, i - 1));
         }
     }
 
@@ -33,13 +32,12 @@ public class ProjectionControlsPanel extends AttributeControlsPanel {
         private int _higherDim;
         private int _lowerDim;
 
-        private JSpinner _projectionType;
+        private JComboBox<String> _projectionType;
         private JSpinner _frustumLength;
 
         private static final List<String> _options = Arrays.asList(
             DimensionalAnalysis.PERSPECTIVE,
-            DimensionalAnalysis.ORTHOGRAPHIC,
-            DimensionalAnalysis.STEREOGRAPHIC
+            DimensionalAnalysis.ORTHOGRAPHIC
         );
 
         public ProjectionControlPanel(final int projectionIndex, final int higherDim, final int lowerDim) {
@@ -58,7 +56,11 @@ public class ProjectionControlsPanel extends AttributeControlsPanel {
             final JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
             final JLabel label = new JLabel("Projection from " + _higherDim + "D to " + _lowerDim + "D :");
-            _projectionType = new JSpinner(new SpinnerListModel(_options));
+            _projectionType = new JComboBox<>();
+
+            for (final String projOpt : _options) {
+                _projectionType.addItem(projOpt);
+            }
 
             final JLabel frustumLabel = new JLabel("Projection Distance:");
             _frustumLength = new JSpinner(new SpinnerNumberModel(DimensionalMatrixHelper.DEFAULT_FRUSTUM_LENGTH, 0.1, 10.0, 0.1));
@@ -78,8 +80,12 @@ public class ProjectionControlsPanel extends AttributeControlsPanel {
         }
 
         private void addListeners() {
-            _projectionType.addChangeListener(changeEvent -> {
-                DimensionalAnalysis.setProjection(_projectionIndex, (String) _projectionType.getValue());
+            _projectionType.addActionListener(actionEvent -> {
+                if (_projectionType.getSelectedObjects().length > 1) {
+                    _projectionType.setSelectedItem(_projectionType.getSelectedObjects()[0]);
+                }
+
+                DimensionalAnalysis.setProjection(_projectionIndex, (String) _projectionType.getSelectedItem());
                 revalidate();
                 repaint();
             });

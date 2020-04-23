@@ -8,7 +8,6 @@ import javax.swing.*;
 public class DimensionalAnalysis {
     public static final String ORTHOGRAPHIC = "Orthogonal";
     public static final String PERSPECTIVE = "Perspective";
-    public static final String STEREOGRAPHIC = "Stereographic";
 
     private static DimensionalCanvasFrame _frame;
 
@@ -18,7 +17,10 @@ public class DimensionalAnalysis {
 
     private static int _drawScale = 100;
 
+    private static final int MAX_DIMENSIONS = DimensionalMatrixHelper.AXES_ORDER.length();
+
     public static void main(final String[] args) {
+        DimensionalMatrixHelper.preload(MAX_DIMENSIONS);
         try {
             UIManager.setLookAndFeel(new DarculaLaf());
         } catch (UnsupportedLookAndFeelException e) {

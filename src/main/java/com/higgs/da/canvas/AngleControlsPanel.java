@@ -9,11 +9,28 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AngleControlsPanel extends AttributeControlsPanel {
+
+    private static List<AngleControlPanel> _controls;
+
     public AngleControlsPanel(final Dimension dimension) {
         super("Angle", dimension);
+        init();
+    }
+
+    private void init() {
+        final JButton _stopProgressing = new JButton("Stop");
+
+        _stopProgressing.addActionListener(actionEvent -> {
+            for (final AngleControlPanel control : _controls) {
+                control.setProgress(false);
+            }
+        });
+
+        _headerPanel.add(_stopProgressing);
     }
 
     public void setShape(final DrawableShape shape) {
@@ -33,12 +50,12 @@ public class AngleControlsPanel extends AttributeControlsPanel {
 
         final List<String> angleNames = Utils.permute(possibleChars, dimCount, false, false);
 
-        final List<AngleControlPanel> otherPanels = new ArrayList<>();
+        _controls = new ArrayList<>();
 
         for (int i = 0; i < numAngles; i++) {
             final AngleControlPanel angleControlPanel = new AngleControlPanel(i, angleNames.get(i));
 
-            _scrollPanel.add(angleControlPanel);
+            _scrollablePanel.add(angleControlPanel);
 
             shape.addAngleChangeListener(changeEvent -> {
                 final Object source = changeEvent.getSource();
@@ -46,11 +63,11 @@ public class AngleControlsPanel extends AttributeControlsPanel {
                     angleControlPanel.setAngleValue(shape.getAngle(angleControlPanel.getAngleIndex()));
                 }
             });
-            otherPanels.add(angleControlPanel);
+            _controls.add(angleControlPanel);
         }
 
-        for (final AngleControlPanel controlPanel : otherPanels) {
-            controlPanel.setList(otherPanels);
+        for (final AngleControlPanel controlPanel : _controls) {
+            controlPanel.setList(_controls);
         }
     }
 
@@ -101,6 +118,7 @@ public class AngleControlsPanel extends AttributeControlsPanel {
             middlePanel.add(_progress);
             middlePanel.add(_progressStep);
             middlePanel.add(new JLabel("deg/s"));
+            middlePanel.add(new JLabel("Sync with:"));
             middlePanel.add(_syncBox);
 
             setSize(100, 50);
@@ -124,7 +142,11 @@ public class AngleControlsPanel extends AttributeControlsPanel {
                 }
             });
 
-            _valueDisplay.addChangeListener(changeEvent -> _slider.setValue((int) _valueDisplay.getValue()));
+            _valueDisplay.addChangeListener(changeEvent -> {
+                DimensionalAnalysis.setAngle(_angleIndex, Math.toRadians((int) _valueDisplay.getValue()));
+
+                _slider.setValue((int) _valueDisplay.getValue());
+            });
 
             _progress.addChangeListener(changeEvent -> DimensionalAnalysis.setAngleProgress(_angleIndex, _progress.isSelected()));
 
@@ -144,21 +166,16 @@ public class AngleControlsPanel extends AttributeControlsPanel {
 
             _syncBox.addActionListener(actionEvent -> {
                 if (_syncBox.getSelectedIndex() != 0) {
-                    syncAngle(_syncBox.getSelectedIndex());
-                    setAngleValue(DimensionalAnalysis.getAngle(_angleIndex));
+                    syncAngle(_syncBox.getSelectedIndex() - 1);
                     _syncBox.setSelectedIndex(0);
                 }
             });
         }
 
-        private void syncAngle(int selectedItem) {
-            int value = _otherPanels.get(selectedItem - 1)._slider.getValue();
+        private void syncAngle(int index) {
+            int value = (int) _otherPanels.get(index)._valueDisplay.getValue();
             DimensionalAnalysis.setAngle(_angleIndex, Math.toRadians(value));
             _slider.setValue(value);
-//            if (selectedItem >= _angleIndex) selectedItem += 1;
-//            selectedItem--;
-//            _progress.setSelected(DimensionalAnalysis.getAngleProgress(selectedItem));
-//            DimensionalAnalysis.setAngle(_angleIndex, DimensionalAnalysis.getAngle(selectedItem));
         }
 
         public void setAngleValue(final double radians) {
@@ -189,6 +206,10 @@ public class AngleControlsPanel extends AttributeControlsPanel {
                     _syncBox.setEnabled(true);
                 }
             }
+        }
+
+        public void setProgress(final boolean progress) {
+            _progress.setSelected(progress);
         }
     }
 }

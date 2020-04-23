@@ -6,7 +6,9 @@ import java.awt.*;
 public class AttributeControlsPanel extends JPanel {
     private String _controlName;
 
-    protected JPanel _scrollPanel;
+    protected JPanel _headerPanel;
+
+    protected JPanel _scrollablePanel;
 
     public AttributeControlsPanel(final String controlName, final Dimension dimension) {
         _controlName = controlName;
@@ -19,7 +21,7 @@ public class AttributeControlsPanel extends JPanel {
     private void initSelf() {
         setLayout(new BorderLayout());
 
-        add(getLabelPanel(), BorderLayout.NORTH);
+        add(_headerPanel = getLabelPanel(), BorderLayout.NORTH);
         add(getScrollPanel(), BorderLayout.CENTER);
 
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -41,10 +43,10 @@ public class AttributeControlsPanel extends JPanel {
     }
 
     private JComponent getScrollPanel() {
-        _scrollPanel = new JPanel();
-        _scrollPanel.setLayout(new BoxLayout(_scrollPanel, BoxLayout.Y_AXIS));
+        _scrollablePanel = new JPanel();
+        _scrollablePanel.setLayout(new BoxLayout(_scrollablePanel, BoxLayout.Y_AXIS));
 
-        final JScrollPane scrollPanel = new JScrollPane(_scrollPanel);
+        final JScrollPane scrollPanel = new JScrollPane(_scrollablePanel);
 
         scrollPanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         scrollPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
