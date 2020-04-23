@@ -8,16 +8,16 @@ import static org.junit.Assert.*;
 
 public class DimensionalMatrixHelperTest {
     @Test
-    public void getPP() {
-        final INDArray points = Nd4j.create(new float[] {
-                -1,  1,  1, -1, -1,  1, 1, -1, // x
-                -1, -1,  1,  1, -1, -1, 1,  1, // y
-                -1, -1, -1, -1,  1,  1, 1,  1  // z
-        }, new int[] { 3, 8 });
+    public void bisectMatrixColumnWise() {
+        final INDArray array = Nd4j.create(new float[] {
+                2, 3,
+                4, 5
+        }, new int[] { 2, 2 });
 
-        DimensionalMatrixHelper.initFrustumLengths(3);
-
-        System.out.println(DimensionalMatrixHelper.getPerspectiveProjection(3, points));
-        System.out.println(DimensionalMatrixHelper.getPP(3, points));
+        final INDArray half1 = Nd4j.create(new int[] { array.rows(), array.columns() / 2 });
+        final INDArray half2 = Nd4j.create(new int[] { array.rows(), array.columns() / 2 });
+        DimensionalMatrixHelper.bisectMatrixColumnWise(half1, half2, array);
+        System.out.println("first half: \n" + half1);
+        System.out.println("second half: \n" + half2);
     }
 }

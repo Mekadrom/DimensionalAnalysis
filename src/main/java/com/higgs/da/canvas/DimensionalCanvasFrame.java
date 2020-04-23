@@ -9,7 +9,7 @@ import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
 public class DimensionalCanvasFrame extends JFrame {
-    private static final Dimension SIZE = new Dimension(1600, 900);
+    private static final Dimension SIZE = new Dimension(1366, 768);
 
     private DimensionalCanvas _panel = null;
 
@@ -24,13 +24,15 @@ public class DimensionalCanvasFrame extends JFrame {
     public DimensionalCanvasFrame() {
         super("Dimensional Analysis");
 
+        init();
+    }
+
+    private void init() {
         setSize(SIZE.width + 100, SIZE.height + 100);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        final JPanel panel = new JPanel(new BorderLayout());
-
-        resetPanel(panel);
+        resetPanel(new JPanel(new BorderLayout()));
 
         setEnabled(true);
         setVisible(true);
@@ -109,10 +111,11 @@ public class DimensionalCanvasFrame extends JFrame {
     }
 
     private JPanel getRightControlPanel() {
-        final JPanel panel = new JPanel(new BorderLayout());
+        final JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        panel.add(getLengthControlPanel(), BorderLayout.WEST);
-        panel.add(getProjectionControlsPanel(), BorderLayout.EAST);
+        panel.add(getLengthControlPanel());
+        panel.add(getProjectionControlsPanel());
 
         return panel;
     }

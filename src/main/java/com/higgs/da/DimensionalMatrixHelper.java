@@ -239,6 +239,12 @@ public class DimensionalMatrixHelper {
     }
 
     public static void bisectMatrixColumnWise(final INDArray firstHalf, final INDArray secondHalf, final INDArray points) {
-
+        for (int i = 0; i < points.columns(); i++) {
+            if (i < points.columns() / 2) {
+                firstHalf.putColumn(i, points.getColumn(i));
+            } else {
+                secondHalf.putColumn(i - (points.columns() / 2), points.getColumn(i));
+            }
+        }
     }
 }

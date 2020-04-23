@@ -97,4 +97,8 @@ public class DimensionalAnalysis {
     public static void setPerspectiveLength(final int projectionIndex, final Double value) {
         _frame.getDrawableShape().setPerspectiveLength(projectionIndex, value);
     }
+
+    public static boolean getAngleProgress(final int angleIndex) {
+        return _frame.getDrawableShape().getAngleProgress(angleIndex);
+    }
 }
