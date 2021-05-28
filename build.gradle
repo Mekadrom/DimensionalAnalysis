@@ -1,32 +1,33 @@
 plugins {
     id 'java'
     id 'application'
+    id "com.github.johnrengelman.shadow" version "5.0.0"
 }
 
-group 'org.example'
-version '1.0-SNAPSHOT'
+group 'org.higgs'
+version '1.0'
 
-sourceCompatibility = 1.8
+targetCompatibility = sourceCompatibility = 11
 
 repositories {
-    maven { url "http://repo.spring.io/libs-release" }
+    maven {
+        url "http://repo.spring.io/libs-release"
+        allowInsecureProtocol = true
+    }
     mavenCentral()
     mavenLocal()
-    jcenter()
 }
 
 dependencies {
-//    implementation group: 'org.lwjgl', name: 'lwjgl', version: '3.2.3'
-//    implementation group: 'org.lwjgl', name: 'lwjgl-glfw', version: '3.2.3'
-//    implementation group: 'org.lwjgl', name: 'lwjgl-opengl', version: '3.2.3'
-//    implementation group: 'org.lwjgl', name: 'lwjgl-cuda', version: '3.2.3'
-
-    implementation group: 'com.bulenkov', name: 'darcula', version: '2018.2'
-    implementation group: 'org.nd4j', name: 'nd4j-api', version: '1.0.0-beta6'
-    implementation group: 'org.bytedeco', name: 'javacpp', version: '1.5.2'
-    implementation group: 'org.nd4j', name: 'nd4j-native-platform', version: '1.0.0-beta6'
-    implementation group: 'com.google.guava', name: 'guava', version: '29.0-jre'
-    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+    implementation group: 'org.nd4j', name: 'nd4j-api', version: '1.0.0-beta7'
+    implementation group: 'org.bytedeco', name: 'javacpp', version: '1.5.5'
+    implementation group: 'org.nd4j', name: 'nd4j-native-platform', version: '1.0.0-beta7'
+    implementation group: 'com.google.guava', name: 'guava', version: '30.1.1-jre'
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
 
     testImplementation 'junit:junit:4.12'
+}
+
+shadowJar {
+    mainClassName = 'com.higgs.da.DimensionalAnalysis'
 }

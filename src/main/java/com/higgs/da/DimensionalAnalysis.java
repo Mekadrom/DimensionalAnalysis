@@ -1,105 +1,97 @@
 package com.higgs.da;
 
-import com.bulenkov.darcula.DarculaLaf;
 import com.higgs.da.canvas.DimensionalCanvasFrame;
 
-import javax.swing.*;
-
-public class DimensionalAnalysis {
+public final class DimensionalAnalysis {
     public static final String ORTHOGRAPHIC = "Orthographic";
     public static final String PERSPECTIVE = "Perspective";
 
-    private static DimensionalCanvasFrame _frame;
+    private static DimensionalCanvasFrame frame;
 
-    private static int _lineThickness = 1;
+    private static int lineThickness = 1;
 
-    private static int _pointSize = 1;
+    private static int pointSize = 1;
 
-    private static int _drawScale = 100;
+    private static int drawScale = 100;
 
     private static final int MAX_DIMENSIONS = DimensionalMatrixHelper.AXES_ORDER.length();
 
     public static void main(final String[] args) {
-        try {
-            UIManager.setLookAndFeel(new DarculaLaf());
-        } catch (UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        }
-        _frame = new DimensionalCanvasFrame();
-        _frame.resetControls();
-        start();
+        DimensionalAnalysis.frame = new DimensionalCanvasFrame();
+        DimensionalAnalysis.frame.resetControls();
+        DimensionalAnalysis.start();
     }
 
     public static void start() {
-        _frame.start();
+        DimensionalAnalysis.frame.start();
     }
 
     public static void stop() {
-        _frame.stop();
+        DimensionalAnalysis.frame.stop();
     }
 
     public static void setLineThickness(final int value) {
-        _lineThickness = value;
+        DimensionalAnalysis.lineThickness = value;
     }
 
     public static int getLineThickness() {
-        return _lineThickness;
+        return DimensionalAnalysis.lineThickness;
     }
 
     public static void setPointSize(final int value) {
-        _pointSize = value;
+        DimensionalAnalysis.pointSize = value;
     }
 
     public static int getPointSize() {
-        return _pointSize;
+        return DimensionalAnalysis.pointSize;
     }
 
     public static void setDrawScale(final int drawScale) {
-        _drawScale = drawScale;
+        DimensionalAnalysis.drawScale = drawScale;
     }
 
     public static int getDrawScale() {
-        return _drawScale;
+        return DimensionalAnalysis.drawScale;
     }
 
     public static void setShape(final DrawableShape shape) {
-        _frame.setDrawableShape(shape);
-        _frame.resetControls();
+        DimensionalAnalysis.frame.setDrawableShape(shape);
+        DimensionalAnalysis.frame.resetControls();
     }
 
     public static void setAngle(final int angleIndex, final double value) {
-        _frame.getDrawableShape().setAngle(angleIndex, value);
+        DimensionalAnalysis.frame.getDrawableShape().setAngle(angleIndex, value);
     }
 
     public static double getAngle(final int angleIndex) {
-        return _frame.getDrawableShape().getAngle(angleIndex);
+        return DimensionalAnalysis.frame.getDrawableShape().getAngle(angleIndex);
     }
 
     public static void setAngleProgress(final int angleIndex, final boolean selected) {
-        _frame.getDrawableShape().setAngleProgress(angleIndex, selected);
+        DimensionalAnalysis.frame.getDrawableShape().setAngleProgress(angleIndex, selected);
     }
 
     public static void setAngleProgressSpeed(final int angleIndex, final double speed) {
-        _frame.getDrawableShape().setAngleProgressSpeed(angleIndex, speed);
+        DimensionalAnalysis.frame.getDrawableShape().setAngleProgressSpeed(angleIndex, speed);
     }
 
     public static DrawableShape getShape() {
-        return _frame.getDrawableShape();
+        return DimensionalAnalysis.frame.getDrawableShape();
     }
 
     public static void setLength(final int axisIndex, final double value) {
-        _frame.getDrawableShape().setLength(axisIndex, value);
+        DimensionalAnalysis.frame.getDrawableShape().setLength(axisIndex, value);
     }
 
     public static void setProjection(final int projectionIndex, final String value) {
-        _frame.getDrawableShape().setProjection(projectionIndex, value);
+        DimensionalAnalysis.frame.getDrawableShape().setProjection(projectionIndex, value);
     }
 
     public static void setPerspectiveLength(final int projectionIndex, final Double value) {
-        _frame.getDrawableShape().setPerspectiveLength(projectionIndex, value);
+        DimensionalAnalysis.frame.getDrawableShape().setPerspectiveLength(projectionIndex, value);
     }
 
     public static boolean getAngleProgress(final int angleIndex) {
-        return _frame.getDrawableShape().getAngleProgress(angleIndex);
+        return DimensionalAnalysis.frame.getDrawableShape().getAngleProgress(angleIndex);
     }
 }

@@ -1,6 +1,5 @@
 package com.higgs.da;
 
-import org.nd4j.linalg.api.buffer.DataBuffer;
 import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -9,8 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DimensionalMatrixHelper {
-
+public final class DimensionalMatrixHelper {
     // the order of axes labels. yes, the application is touted to be able to visualize n-dimensions but we run out
     // of characters eventually (after 26 dimensions) also the visualization loses perceptibility after 5 dimensions
     public static final String AXES_ORDER = "xyzwuvijklmnopqrstabcdefgh";
@@ -19,27 +17,27 @@ public class DimensionalMatrixHelper {
     public static final float DEFAULT_FRUSTUM_LENGTH = 1.8f;
 
 
-    private static List<String> _dimPerm = new ArrayList<>();
+    private static List<String> dimPerm = new ArrayList<>();
 
-    public static void preload(int numDim) {
+    public static void preload(final int numDim) {
         // retrieve a list of all permutations of each dimension in the possible axes (up to 26) in combinations of 2
-        _dimPerm = Utils.permute(getAxes(numDim), 2, false, false);
+        DimensionalMatrixHelper.dimPerm = Utils.permute(DimensionalMatrixHelper.getAxes(numDim), 2, false, false);
     }
 
     public static INDArray transform(final INDArray angles, final INDArray point, final String[] projections, final float[] fLengths) {
-        final int dimNum = dimCountFromAngleCount(angles.columns());
-        return project(rotate(angles, point), projections, fLengths).mul(DimensionalAnalysis.getDrawScale() * (2 * Math.pow(DEFAULT_FRUSTUM_LENGTH, dimNum) / dimNum));
+        final int dimNum = DimensionalMatrixHelper.dimCountFromAngleCount(angles.columns());
+        return DimensionalMatrixHelper.project(DimensionalMatrixHelper.rotate(angles, point), projections, fLengths).mul(DimensionalAnalysis.getDrawScale() * (2 * Math.pow(DimensionalMatrixHelper.DEFAULT_FRUSTUM_LENGTH, dimNum) / dimNum));
     }
 
     private static INDArray project(final INDArray point, final String[] projections, final float[] fLengths) {
-        INDArray projected = copy(point);
+        INDArray projected = DimensionalMatrixHelper.copy(point);
         for (int dim = point.rows(); dim > 2; dim--) {
             final float fLength = fLengths[dim - 3];
             final String pType = projections[dim - 3];
             if (DimensionalAnalysis.PERSPECTIVE.equalsIgnoreCase(pType)) {
-                projected = Nd4j.matmul(getPerspectiveProjection(projected, fLength), projected);
+                projected = Nd4j.matmul(DimensionalMatrixHelper.getPerspectiveProjection(projected, fLength), projected);
             } else {
-                projected = Nd4j.matmul(getOrthographicProjection(dim), projected);
+                projected = Nd4j.matmul(DimensionalMatrixHelper.getOrthographicProjection(dim), projected);
             }
         }
         return projected;
@@ -49,12 +47,12 @@ public class DimensionalMatrixHelper {
      * Rotate a given point in any dimension using the given angles
      *
      * @param angles any number of angles that corresponds to a number of dimensions
-     * @param point a point to rotate-transform
+     * @param point  a point to rotate-transform
      * @return the rotate-transformed point
      */
     public static INDArray rotate(final INDArray angles, final INDArray point) {
-        INDArray rotated = copy(point);
-        for (final INDArray rotationMatrix : getRotationMatrices(angles)) {
+        INDArray rotated = DimensionalMatrixHelper.copy(point);
+        for (final INDArray rotationMatrix : DimensionalMatrixHelper.getRotationMatrices(angles)) {
             rotated = Nd4j.matmul(rotationMatrix, rotated);
         }
         return rotated;
@@ -68,20 +66,20 @@ public class DimensionalMatrixHelper {
      * @return an array of rotation matrices to be applied sequentially to obtain a completely rotate-transformed point
      */
     private static INDArray[] getRotationMatrices(final INDArray angles) {
-        int numDim = dimCountFromAngleCount(angles.columns()); // get numDim from number of angles
+        final int numDim = DimensionalMatrixHelper.dimCountFromAngleCount(angles.columns()); // get numDim from number of angles
 
         // for every angle value there are two dimensions that are rotated about; this 2d int array stores that info
         final int[][] dimRotateAbout = new int[angles.columns()][2];
-        for (int i = 0; i < _dimPerm.size(); i++) {
-            final String permutation = _dimPerm.get(i);
+        for (int i = 0; i < DimensionalMatrixHelper.dimPerm.size(); i++) {
+            final String permutation = DimensionalMatrixHelper.dimPerm.get(i);
             for (int j = 0; j < permutation.length(); j++) {
-                dimRotateAbout[i][j] = AXES_ORDER.indexOf(permutation.charAt(j));
+                dimRotateAbout[i][j] = DimensionalMatrixHelper.AXES_ORDER.indexOf(permutation.charAt(j));
             }
         }
 
         final INDArray[] rotationMatrices = new INDArray[angles.columns()];
         for (int i = 0; i < angles.columns(); i++) {
-            rotationMatrices[i] = getRotationMatrix(angles.getColumn(i).getDouble(0), numDim, dimRotateAbout[i]);
+            rotationMatrices[i] = DimensionalMatrixHelper.getRotationMatrix(angles.getColumn(i).getDouble(0), numDim, dimRotateAbout[i]);
         }
         return rotationMatrices;
     }
@@ -89,25 +87,25 @@ public class DimensionalMatrixHelper {
     /**
      * Given an angle value (radians), the number of dimensions, and a set of two dimensions to rotate
      * about, computes a single rotation matrix in n-dimensional space.
-     *
+     * <p>
      * Most of what I know about this particular topic comes from this paper:
      * http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=3621C7A9C67B2FA7223C87151D9AAD07?doi=10.1.1.4.8662&rep=rep1&type=pdf
      *
-     * @param angle the angle value to use in cosine and sine calculations
-     * @param numDim the number of dimensions
+     * @param angle       the angle value to use in cosine and sine calculations
+     * @param numDim      the number of dimensions
      * @param rotateAbout an array of size [2] that contains the two dimensions to rotate about
      * @return the rotation matrix for the given angle, number of dimensions, and dimensions to rotate with
      */
     private static INDArray getRotationMatrix(final double angle, final int numDim, final int[] rotateAbout) {
-        final INDArray rotMat = Nd4j.zeros(new int[] { numDim, numDim });
+        final INDArray rotMat = Nd4j.zeros(numDim, numDim);
         for (int i = 0; i < numDim; i++) {
             for (int j = 0; j < numDim; j++) {
                 if ((i == rotateAbout[0] && j == rotateAbout[0]) || (i == rotateAbout[1] && j == rotateAbout[1])) {
-                    rotMat.put(i, j,  Math.cos(angle));
+                    rotMat.put(i, j, Math.cos(angle));
                 } else if (i == rotateAbout[0] && j == rotateAbout[1]) {
                     rotMat.put(i, j, -Math.sin(angle));
                 } else if (i == rotateAbout[1] && j == rotateAbout[0]) {
-                    rotMat.put(i, j,  Math.sin(angle));
+                    rotMat.put(i, j, Math.sin(angle));
                 } else if (i == j) {
                     rotMat.put(i, j, 1.0);
                 }
@@ -144,6 +142,7 @@ public class DimensionalMatrixHelper {
     /**
      * Utility method for determining the number of dimensions involved in a rotation calculation based on the number of
      * angles required to fully define the rotation.
+     *
      * @param ndimensions the number of dimensions
      * @return the number of angles
      */
@@ -162,14 +161,14 @@ public class DimensionalMatrixHelper {
      * Given a point and the frustum length for a perspective projection, returns the projection matrix that
      * corresponds to the given values
      *
-     * @param point a point to project
+     * @param point         a point to project
      * @param frustumLength a distance to the observer
      * @return a projection matrix for this point
      */
     public static INDArray getPerspectiveProjection(final INDArray point, final float frustumLength) {
-        float w = 1 / (frustumLength - point.getColumn(0).getFloat(point.rows() - 1));
-        final INDArray persp = Nd4j.zeros(new int[] { point.rows() - 1, point.rows() });
-        fillArrayAxially(persp, w);
+        final float w = 1 / (frustumLength - point.getColumn(0).getFloat(point.rows() - 1));
+        final INDArray persp = Nd4j.zeros(point.rows() - 1, point.rows());
+        DimensionalMatrixHelper.fillArrayAxially(persp, w);
         return persp;
     }
 
@@ -181,14 +180,14 @@ public class DimensionalMatrixHelper {
      * truncates this extra point data
      */
     public static INDArray getOrthographicProjection(final int numDim) {
-        final INDArray ortho = Nd4j.zeros(new int[] { numDim - 1, numDim });
-        fillArrayAxially(ortho, 1);
+        final INDArray ortho = Nd4j.zeros(numDim - 1, numDim);
+        DimensionalMatrixHelper.fillArrayAxially(ortho, 1);
         return ortho;
     }
 
     public static INDArray fillArrayAxially(final double value, final long... shape) {
         final INDArray array = Nd4j.create(DataType.FLOAT, shape);
-        fillArrayAxially(array, value);
+        DimensionalMatrixHelper.fillArrayAxially(array, value);
         return array;
     }
 
@@ -200,7 +199,7 @@ public class DimensionalMatrixHelper {
      * @param value the value to fill the array with
      */
     public static void fillArrayAxially(final INDArray array, final double value) {
-        fillArrayAxially(array, value, 0);
+        DimensionalMatrixHelper.fillArrayAxially(array, value, 0);
     }
 
     /**
@@ -230,7 +229,7 @@ public class DimensionalMatrixHelper {
      * @return the axes labels as a char[]
      */
     public static char[] getAxes(final int numDim) {
-        return Arrays.copyOfRange(AXES_ORDER.toCharArray(), 0, numDim);
+        return Arrays.copyOfRange(DimensionalMatrixHelper.AXES_ORDER.toCharArray(), 0, numDim);
     }
 
     /**

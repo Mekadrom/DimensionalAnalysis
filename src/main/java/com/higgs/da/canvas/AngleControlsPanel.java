@@ -5,52 +5,64 @@ import com.higgs.da.DimensionalMatrixHelper;
 import com.higgs.da.DrawableShape;
 import com.higgs.da.Utils;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AngleControlsPanel extends AttributeControlsPanel {
 
-    private static List<AngleControlPanel> _controls;
+    private static List<AngleControlPanel> controls;
 
     public AngleControlsPanel(final Dimension dimension) {
         super("Angle", dimension);
-        init();
+        this.init();
     }
 
     private void init() {
         final JButton _stopProgressing = new JButton("Toggle Progress All");
 
-        _stopProgressing.addActionListener(actionEvent -> _controls.forEach(AngleControlPanel::toggleProgress));
+        _stopProgressing.addActionListener(actionEvent -> AngleControlsPanel.controls.forEach(AngleControlPanel::toggleProgress));
 
-        _headerPanel.add(_stopProgressing, BorderLayout.EAST);
+        this.headerPanel.add(_stopProgressing, BorderLayout.EAST);
     }
 
     public void setShape(final DrawableShape shape) {
-        SwingUtilities.invokeLater(() -> reset(shape));
+        SwingUtilities.invokeLater(() -> this.reset(shape));
     }
 
     private void reset(final DrawableShape shape) {
         if (shape == null) return;
 
-        int numAngles = shape.getNumAngles();
-        int numDim = shape.getNumDimensions(); // DimensionalMatrixHelper.dimCountFromAngleCount(numAngles);
+        final int numAngles = shape.getNumAngles();
+        final int numDim = shape.getNumDimensions(); // DimensionalMatrixHelper.dimCountFromAngleCount(numAngles);
 
         final char[] possibleChars = DimensionalMatrixHelper.getAxes(numDim);
 
         // minus two because number of dimensions required to define angle is always two less than the number of spatial dimensions
-        int dimCount = numDim - 2;
+        final int dimCount = numDim - 2;
 
         final List<String> angleNames = Utils.permute(possibleChars, dimCount, false, false);
 
-        _controls = new ArrayList<>();
+        AngleControlsPanel.controls = new ArrayList<>();
 
         for (int i = 0; i < numAngles; i++) {
             final AngleControlPanel angleControlPanel = new AngleControlPanel(i, angleNames.get(i));
 
-            _scrollablePanel.add(angleControlPanel);
+            this.scrollablePanel.add(angleControlPanel);
 
             shape.addAngleChangeListener(changeEvent -> {
                 final Object source = changeEvent.getSource();
@@ -58,22 +70,22 @@ public class AngleControlsPanel extends AttributeControlsPanel {
                     angleControlPanel.setAngleValue(shape.getAngle(angleControlPanel.getAngleIndex()));
                 }
             });
-            _controls.add(angleControlPanel);
+            AngleControlsPanel.controls.add(angleControlPanel);
         }
 
-        for (final AngleControlPanel controlPanel : _controls) {
-            controlPanel.setList(_controls);
+        for (final AngleControlPanel controlPanel : AngleControlsPanel.controls) {
+            controlPanel.setList(AngleControlsPanel.controls);
         }
     }
 
     static class AngleControlPanel extends AttributeControlPanel {
-        private int _angleIndex;
-        private String _suffix;
+        private final int angleIndex;
+        private final String suffix;
 
-        private JSlider _slider;
-        private JCheckBox _progress;
-        private JSpinner _valueDisplay;
-        private JSpinner _progressStep;
+        private JSlider slider;
+        private JCheckBox progress;
+        private JSpinner valueDisplay;
+        private JSpinner progressStep;
 
         private final List<AngleControlPanel> _otherPanels = new ArrayList<>();
 
@@ -81,137 +93,139 @@ public class AngleControlsPanel extends AttributeControlsPanel {
         private JLabel _syncLabel;
 
         public AngleControlPanel(final int angleIndex, final String suffix) {
-            _angleIndex = angleIndex;
-            _suffix = suffix;
+            this.angleIndex = angleIndex;
+            this.suffix = suffix;
 
-            init();
+            this.init();
         }
 
         private void init() {
-            setLayout(new BorderLayout());
+            this.setLayout(new BorderLayout());
 
             final JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
             final JPanel middlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-            final JLabel label = new JLabel("Angle " + _suffix.toUpperCase());
+            final JLabel label = new JLabel("Angle " + this.suffix.toUpperCase());
             label.setFont(new Font("Droid Sans Mono", Font.BOLD, 12));
 
-            _slider = new JSlider(0, 360, 0);
+            this.slider = new JSlider(0, 360, 0);
 
-            _valueDisplay = new JSpinner(new SpinnerNumberModel(0, 0, 360, 1));
+            this.valueDisplay = new JSpinner(new SpinnerNumberModel(0, 0, 360, 1));
 
-            _progress = new JCheckBox("Progress", true);
+            this.progress = new JCheckBox("Progress", true);
 
-            _progressStep = new JSpinner(new SpinnerNumberModel(45, 0, 360, 1));
+            this.progressStep = new JSpinner(new SpinnerNumberModel(45, 0, 360, 1));
 
-            _syncLabel = new JLabel("Sync with:");
-            _syncLabel.setEnabled(false);
-            _syncLabel.setVisible(false);
+            this._syncLabel = new JLabel("Sync with:");
+            this._syncLabel.setEnabled(false);
+            this._syncLabel.setVisible(false);
 
-            _syncBox = new JComboBox<>();
-            _syncBox.setEnabled(false);
-            _syncBox.setVisible(false);
+            this._syncBox = new JComboBox<>();
+            this._syncBox.setEnabled(false);
+            this._syncBox.setVisible(false);
 
             topPanel.add(label);
-            topPanel.add(_slider);
-            topPanel.add(_valueDisplay);
-            middlePanel.add(_progress);
-            middlePanel.add(_progressStep);
+            topPanel.add(this.slider);
+            topPanel.add(this.valueDisplay);
+            middlePanel.add(this.progress);
+            middlePanel.add(this.progressStep);
             middlePanel.add(new JLabel("deg/s"));
-            middlePanel.add(_syncLabel);
-            middlePanel.add(_syncBox);
+            middlePanel.add(this._syncLabel);
+            middlePanel.add(this._syncBox);
 
-            setSize(100, 50);
+            this.setSize(100, 50);
 
-            add(topPanel, BorderLayout.NORTH);
-            add(middlePanel, BorderLayout.CENTER);
+            this.add(topPanel, BorderLayout.NORTH);
+            this.add(middlePanel, BorderLayout.CENTER);
 
             this.addListeners();
         }
 
         private void addListeners() {
-            _slider.addChangeListener(changeEvent -> {
-                DimensionalAnalysis.setAngle(_angleIndex, Math.toRadians(_slider.getValue()));
+            this.slider.addChangeListener(changeEvent -> {
+                DimensionalAnalysis.setAngle(this.angleIndex, Math.toRadians(this.slider.getValue()));
 
-                _valueDisplay.setValue(_slider.getValue());
+                this.valueDisplay.setValue(this.slider.getValue());
             });
 
-            _slider.addFocusListener(new FocusAdapter() {
+            this.slider.addFocusListener(new FocusAdapter() {
+                @Override
                 public void focusGained(final FocusEvent e) {
-                    _progress.setSelected(false);
+                    AngleControlPanel.this.progress.setSelected(false);
                 }
             });
 
-            _valueDisplay.addChangeListener(changeEvent -> {
-                DimensionalAnalysis.setAngle(_angleIndex, Math.toRadians((int) _valueDisplay.getValue()));
+            this.valueDisplay.addChangeListener(changeEvent -> {
+                DimensionalAnalysis.setAngle(this.angleIndex, Math.toRadians((int) this.valueDisplay.getValue()));
 
-                _slider.setValue((int) _valueDisplay.getValue());
+                this.slider.setValue((int) this.valueDisplay.getValue());
             });
 
-            _progress.addChangeListener(changeEvent -> DimensionalAnalysis.setAngleProgress(_angleIndex, _progress.isSelected()));
+            this.progress.addChangeListener(changeEvent -> DimensionalAnalysis.setAngleProgress(this.angleIndex, this.progress.isSelected()));
 
-            _progressStep.addChangeListener(changeEvent -> {
-                if ((int) _progressStep.getValue() < 1) {
-                    _progressStep.setValue(1);
-                    _progress.setSelected(false);
+            this.progressStep.addChangeListener(changeEvent -> {
+                if ((int) this.progressStep.getValue() < 1) {
+                    this.progressStep.setValue(1);
+                    this.progress.setSelected(false);
                 }
-                DimensionalAnalysis.setAngleProgressSpeed(_angleIndex, Math.toRadians((int) _progressStep.getValue()) / 60.0);
+                DimensionalAnalysis.setAngleProgressSpeed(this.angleIndex, Math.toRadians((int) this.progressStep.getValue()) / 60.0);
             });
 
-            _progressStep.addFocusListener(new FocusAdapter() {
+            this.progressStep.addFocusListener(new FocusAdapter() {
+                @Override
                 public void focusGained(final FocusEvent e) {
-                    _progress.setSelected(true);
+                    AngleControlPanel.this.progress.setSelected(true);
                 }
             });
 
-            _syncBox.addActionListener(actionEvent -> {
-                if (_syncBox.getSelectedIndex() != 0) {
-                    syncAngle(_syncBox.getSelectedIndex() - 1);
-                    _syncBox.setSelectedIndex(0);
+            this._syncBox.addActionListener(actionEvent -> {
+                if (this._syncBox.getSelectedIndex() != 0) {
+                    this.syncAngle(this._syncBox.getSelectedIndex() - 1);
+                    this._syncBox.setSelectedIndex(0);
                 }
             });
         }
 
-        private void syncAngle(int index) {
-            int value = (int) _otherPanels.get(index)._valueDisplay.getValue();
-            DimensionalAnalysis.setAngle(_angleIndex, Math.toRadians(value));
-            _slider.setValue(value);
+        private void syncAngle(final int index) {
+            final int value = (int) this._otherPanels.get(index).valueDisplay.getValue();
+            DimensionalAnalysis.setAngle(this.angleIndex, Math.toRadians(value));
+            this.slider.setValue(value);
         }
 
         public void setAngleValue(final double radians) {
-            _slider.setValue((int) Math.toDegrees(radians));
+            this.slider.setValue((int) Math.toDegrees(radians));
         }
 
         public int getAngleIndex() {
-            return _angleIndex;
+            return this.angleIndex;
         }
 
         public String getSuffix() {
-            return _suffix;
+            return this.suffix;
         }
 
         public void setList(final List<AngleControlPanel> otherPanels) {
             if (otherPanels.size() > 1) {
-                _otherPanels.addAll(otherPanels);
-                _otherPanels.remove(this);
-                _syncBox.addItem("");
-                for (final AngleControlPanel otherPanel : _otherPanels) {
-                    _syncBox.addItem(otherPanel.getSuffix());
+                this._otherPanels.addAll(otherPanels);
+                this._otherPanels.remove(this);
+                this._syncBox.addItem("");
+                for (final AngleControlPanel otherPanel : this._otherPanels) {
+                    this._syncBox.addItem(otherPanel.getSuffix());
                 }
-                _syncBox.revalidate();
-                _syncBox.repaint();
+                this._syncBox.revalidate();
+                this._syncBox.repaint();
 
-                if (_otherPanels.size() > 0) {
-                    _syncBox.setVisible(true);
-                    _syncBox.setEnabled(true);
-                    _syncLabel.setVisible(true);
-                    _syncLabel.setEnabled(true);
+                if (this._otherPanels.size() > 0) {
+                    this._syncBox.setVisible(true);
+                    this._syncBox.setEnabled(true);
+                    this._syncLabel.setVisible(true);
+                    this._syncLabel.setEnabled(true);
                 }
             }
         }
 
         public void toggleProgress() {
-            _progress.doClick();
+            this.progress.doClick();
         }
     }
 }

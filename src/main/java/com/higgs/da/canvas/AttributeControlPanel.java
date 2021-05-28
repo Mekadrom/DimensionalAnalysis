@@ -1,6 +1,6 @@
 package com.higgs.da.canvas;
 
-import javax.swing.*;
+import javax.swing.JPanel;
 
 public class AttributeControlPanel extends JPanel {
 }

@@ -4,8 +4,15 @@ import com.higgs.da.DimensionalAnalysis;
 import com.higgs.da.DimensionalMatrixHelper;
 import com.higgs.da.DrawableShape;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,85 +22,86 @@ public class ProjectionControlsPanel extends AttributeControlsPanel {
     }
 
     public void setShape(final DrawableShape shape) {
-        if (shape == null) return;
+        if (shape == null) {
+            return;
+        }
 
-        int numDim = shape.getNumDimensions();
+        final int numDim = shape.getNumDimensions();
 
         int index = 0;
-
         for (int i = numDim; i > 2; i--) {
-            _scrollablePanel.add(new ProjectionControlPanel(index++, i, i - 1));
+            this.scrollablePanel.add(new ProjectionControlPanel(index++, i, i - 1));
         }
     }
 
     private static class ProjectionControlPanel extends AttributeControlPanel {
-        private int _projectionIndex;
+        private final int _projectionIndex;
 
-        private int _higherDim;
-        private int _lowerDim;
+        private final int _higherDim;
+        private final int _lowerDim;
 
         private JComboBox<String> _projectionType;
         private JSpinner _frustumLength;
 
-        private static final List<String> _options = Arrays.asList(
-            DimensionalAnalysis.PERSPECTIVE,
-            DimensionalAnalysis.ORTHOGRAPHIC
+        private static final List<String> options = Arrays.asList(
+                DimensionalAnalysis.PERSPECTIVE,
+                DimensionalAnalysis.ORTHOGRAPHIC
         );
 
         public ProjectionControlPanel(final int projectionIndex, final int higherDim, final int lowerDim) {
-            _projectionIndex = projectionIndex;
+            this._projectionIndex = projectionIndex;
 
-            _higherDim = higherDim;
-            _lowerDim = lowerDim;
+            this._higherDim = higherDim;
+            this._lowerDim = lowerDim;
 
-            init();
+            this.init();
         }
 
         private void init() {
-            setLayout(new BorderLayout());
+            this.setLayout(new BorderLayout());
 
             final JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
             final JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-            final JLabel label = new JLabel("Projection from " + _higherDim + "D to " + _lowerDim + "D :");
-            _projectionType = new JComboBox<>();
+            final JLabel label = new JLabel("Projection from " + this._higherDim + "D to " + this._lowerDim + "D :");
+            this._projectionType = new JComboBox<>();
 
-            for (final String projOpt : _options) {
-                _projectionType.addItem(projOpt);
+            for (final String projOpt : ProjectionControlPanel.options) {
+                this._projectionType.addItem(projOpt);
             }
 
             final JLabel frustumLabel = new JLabel("Projection Distance:");
-            _frustumLength = new JSpinner(new SpinnerNumberModel(DimensionalMatrixHelper.DEFAULT_FRUSTUM_LENGTH, 0.1, 10.0, 0.1));
+            this._frustumLength = new JSpinner(new SpinnerNumberModel(DimensionalMatrixHelper.DEFAULT_FRUSTUM_LENGTH, 0.1, 10.0, 0.1));
 
             topPanel.add(label);
-            topPanel.add(_projectionType);
+            topPanel.add(this._projectionType);
 
             bottomPanel.add(frustumLabel);
-            bottomPanel.add(_frustumLength);
+            bottomPanel.add(this._frustumLength);
 
-            setSize(100, 50);
+            this.setSize(200, 50);
 
-            add(topPanel, BorderLayout.NORTH);
-            add(bottomPanel, BorderLayout.CENTER);
+            this.add(topPanel, BorderLayout.NORTH);
+            this.add(bottomPanel, BorderLayout.CENTER);
 
             SwingUtilities.invokeLater(this::addListeners);
         }
 
         private void addListeners() {
-            _projectionType.addActionListener(actionEvent -> {
-                if (_projectionType.getSelectedObjects().length > 1) {
-                    _projectionType.setSelectedItem(_projectionType.getSelectedObjects()[0]);
+            this._projectionType.addActionListener(actionEvent -> {
+                if (this._projectionType.getSelectedObjects().length > 1) {
+                    this._projectionType.setSelectedItem(this._projectionType.getSelectedObjects()[0]);
                 }
 
-                DimensionalAnalysis.setProjection(_projectionIndex, (String) _projectionType.getSelectedItem());
-                revalidate();
-                repaint();
+                DimensionalAnalysis.setProjection(this._projectionIndex, (String) this._projectionType.getSelectedItem());
+                this.revalidate();
+                this.repaint();
             });
 
-            _frustumLength.addChangeListener(changeEvent -> {
-                DimensionalAnalysis.setPerspectiveLength(_projectionIndex, (Double) _frustumLength.getValue());
-                revalidate();
-                repaint();
+            this._frustumLength.addChangeListener(changeEvent -> {
+                DimensionalAnalysis.setPerspectiveLength(this._projectionIndex, (Double) this._frustumLength.getValue());
+                this.revalidate();
+                this.repaint();
             });
         }
     }

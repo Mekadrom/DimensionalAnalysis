@@ -4,21 +4,31 @@ import com.higgs.da.DimensionalAnalysis;
 import com.higgs.da.DimensionalMatrixHelper;
 import com.higgs.da.DrawableShape;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
 public class DimensionalCanvasFrame extends JFrame {
     private static final Dimension SIZE = new Dimension(1366, 768);
 
-    private DimensionalCanvas _panel = null;
+    private DimensionalCanvas panel = null;
 
-    private static DrawableShape _shape = new DrawableShape(2);
+    private static DrawableShape shape = new DrawableShape(2);
 
-    private AngleControlsPanel _angleControlsPanel;
-    private LengthControlsPanel _lengthControlsPanel;
-    private ProjectionControlsPanel _projectionControlsPanel;
+    private AngleControlsPanel angleControlsPanel;
+    private LengthControlsPanel lengthControlsPanel;
+    private ProjectionControlsPanel projectionControlsPanel;
 
     private DimensionalControlPanel _globalControlPanel;
 
@@ -26,152 +36,153 @@ public class DimensionalCanvasFrame extends JFrame {
         super("Dimensional Analysis");
 
         DimensionalMatrixHelper.preload(2);
-        init();
+        this.init();
     }
 
     private void init() {
-        setSize(SIZE.width + 100, SIZE.height + 100);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        this.setSize(DimensionalCanvasFrame.SIZE.width + 100, DimensionalCanvasFrame.SIZE.height + 100);
+        this.setLocationRelativeTo(null);
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        resetPanel(new JPanel(new BorderLayout()));
+        this.resetPanel(new JPanel(new BorderLayout()));
 
-        setEnabled(true);
-        setVisible(true);
+        this.setEnabled(true);
+        this.setVisible(true);
     }
 
     private JPanel getGlobalControlPanel() {
-        if (_globalControlPanel == null) {
-            _globalControlPanel = new DimensionalControlPanel(new Dimension(getWidth(), 100));
+        if (this._globalControlPanel == null) {
+            this._globalControlPanel = new DimensionalControlPanel(new Dimension(this.getWidth(), 100));
         }
-        return _globalControlPanel;
+        return this._globalControlPanel;
     }
 
     private JPanel getAngleControlPanel() {
-        if (_angleControlsPanel == null) {
-            _angleControlsPanel = new AngleControlsPanel(new Dimension(400, getHeight()));
+        if (this.angleControlsPanel == null) {
+            this.angleControlsPanel = new AngleControlsPanel(new Dimension(400, this.getHeight()));
         }
-        return _angleControlsPanel;
+        return this.angleControlsPanel;
     }
 
     private JPanel getLengthControlPanel() {
-        if (_lengthControlsPanel == null) {
-            _lengthControlsPanel = new LengthControlsPanel(new Dimension(240, getHeight()));
+        if (this.lengthControlsPanel == null) {
+            this.lengthControlsPanel = new LengthControlsPanel(new Dimension(240, this.getHeight()));
         }
-        return _lengthControlsPanel;
+        return this.lengthControlsPanel;
     }
 
     private JPanel getProjectionControlsPanel() {
-        if (_projectionControlsPanel == null) {
-            _projectionControlsPanel = new ProjectionControlsPanel(new Dimension(300, getHeight()));
+        if (this.projectionControlsPanel == null) {
+            this.projectionControlsPanel = new ProjectionControlsPanel(new Dimension(350, this.getHeight()));
         }
-        return _projectionControlsPanel;
+        return this.projectionControlsPanel;
     }
 
     /**
      * Shortcut to start the panel's update loop
      */
     public void start() {
-        _panel.start();
+        this.panel.start();
     }
 
     public void stop() {
-        _panel.stop();
+        this.panel.stop();
     }
 
     public void setDrawableShape(final DrawableShape shape) {
-        _shape = shape;
+        DimensionalCanvasFrame.shape = shape;
     }
 
     public DrawableShape getDrawableShape() {
-        return _shape;
+        return DimensionalCanvasFrame.shape;
     }
 
     public void resetControls() {
-        resetAngleControls();
-        resetLengthControls();
+        this.resetAngleControls();
+        this.resetLengthControls();
 
-        if (getDrawableShape() != null) {
-            resetProjectionControls();
+        if (this.getDrawableShape() != null) {
+            this.resetProjectionControls();
         } else {
-            getContentPane().remove(getProjectionControlsPanel());
+            this.getContentPane().remove(this.getProjectionControlsPanel());
         }
 
-        resetPanel(getContentPane());
+        this.resetPanel(this.getContentPane());
     }
 
     private void resetPanel(final Container contentPane) {
         contentPane.removeAll();
 
-        contentPane.add(getGlobalControlPanel(), BorderLayout.NORTH);
-        contentPane.add(getAngleControlPanel(), BorderLayout.WEST);
-        contentPane.add(getRightControlPanel(), BorderLayout.EAST);
+        contentPane.add(this.getGlobalControlPanel(), BorderLayout.NORTH);
+        contentPane.add(this.getAngleControlPanel(), BorderLayout.WEST);
+        contentPane.add(this.getRightControlPanel(), BorderLayout.EAST);
 
-        contentPane.add(_panel = new DimensionalCanvas(), BorderLayout.CENTER);
+        contentPane.add(this.panel = new DimensionalCanvas(), BorderLayout.CENTER);
 
-        setContentPane(contentPane);
+        this.setContentPane(contentPane);
     }
 
     private JPanel getRightControlPanel() {
         final JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        panel.add(getLengthControlPanel());
-        panel.add(getProjectionControlsPanel());
+        panel.add(this.getLengthControlPanel());
+        panel.add(this.getProjectionControlsPanel());
 
         return panel;
     }
 
     public void resetAngleControls() {
-        _angleControlsPanel = new AngleControlsPanel(new Dimension(400, getHeight()));
-        _angleControlsPanel.setShape(_shape);
+        this.angleControlsPanel = new AngleControlsPanel(new Dimension(400, this.getHeight()));
+        this.angleControlsPanel.setShape(DimensionalCanvasFrame.shape);
     }
 
     private void resetLengthControls() {
-        _lengthControlsPanel = new LengthControlsPanel(new Dimension(240, getHeight()));
-        _lengthControlsPanel.setShape(_shape);
+        this.lengthControlsPanel = new LengthControlsPanel(new Dimension(240, this.getHeight()));
+        this.lengthControlsPanel.setShape(DimensionalCanvasFrame.shape);
     }
 
     private void resetProjectionControls() {
-        _projectionControlsPanel = new ProjectionControlsPanel(new Dimension(300, getHeight()));
-        _projectionControlsPanel.setShape(_shape);
+        this.projectionControlsPanel = new ProjectionControlsPanel(new Dimension(350, this.getHeight()));
+        this.projectionControlsPanel.setShape(DimensionalCanvasFrame.shape);
     }
 
     static class DimensionalCanvas extends JPanel {
-        private boolean _stopped = false;
+        private boolean stopped = false;
 
-        private Thread _logicThread;
+        private Thread logicThread;
 
-        private String _fps = "";
+//        private String fps = "";
 
         public void stop() {
-            _stopped = true;
+            this.stopped = true;
         }
 
         /**
          * Call once to create a thread that updates the canvas' background and does logic
          */
         public void start() {
-            start(this::logic, this::repaint);
+            this.start(this::logic, this::repaint);
         }
 
         /**
          * Internal start method that takes a list of functions to run every frame and runs them in sequential order
+         *
          * @param everyFrameRun a list of runnables to run every frame
          */
         private void start(final Runnable... everyFrameRun) {
             final double TARGET_FPS = 60.0;
             final double OPTIMAL_TIME = 1000000000.0 / TARGET_FPS;
 
-            _stopped = false;
-            if (_logicThread == null) {
-                _logicThread = new Thread(() -> {
+            this.stopped = false;
+            if (this.logicThread == null) {
+                this.logicThread = new Thread(() -> {
                     long before;
                     long timer = System.currentTimeMillis();
                     double delta = 0;
                     int frames = 0;
 
-                    while (DimensionalCanvas.this.isVisible() && !_stopped) {
+                    while (DimensionalCanvas.this.isVisible() && !this.stopped) {
                         before = System.nanoTime();
                         if (delta >= 1) {
                             Arrays.stream(everyFrameRun).forEach(Runnable::run);
@@ -181,13 +192,13 @@ public class DimensionalCanvasFrame extends JFrame {
                         delta += (System.nanoTime() - before) / OPTIMAL_TIME;
 
                         if (System.currentTimeMillis() - timer > 1000) {
-//                            _fps = String.valueOf(frames);
+//                            this.fps = String.valueOf(frames);
                             frames = 0;
                             timer += 1000;
                         }
                     }
                 }, "DCP Action Thread");
-                _logicThread.start();
+                this.logicThread.start();
             }
         }
 
@@ -195,39 +206,41 @@ public class DimensionalCanvasFrame extends JFrame {
          * Updates the shape every frame; like ticks
          */
         private void logic() {
-            _shape.update();
+            DimensionalCanvasFrame.shape.update();
         }
 
         /**
          * Overridden to draw the image obtained from draw() onto this panel
+         *
          * @param g the graphics component to draw on
          */
         @Override
         public void paint(final Graphics g) {
             super.paint(g);
-            g.drawImage(draw(), 0, 0, null);
+            g.drawImage(this.draw(), 0, 0, null);
         }
 
         /**
          * Clears the image by filling with a background and then draws every drawable
+         *
          * @return the current frame
          */
         public BufferedImage draw() {
-            final BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+            final BufferedImage image = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
 
             final Graphics2D g2d = image.createGraphics();
 
-            g2d.setColor(Color.BLACK);
+            g2d.setColor(UIManager.getColor("Panel.background"));
             g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
 
-            g2d.setColor(Color.WHITE);
+            g2d.setColor(Color.BLACK);
 
-            g2d.drawString(_fps, 2, 12);
+//            g2d.drawString(this.fps, 2, 12);
 
-            g2d.translate(getSize().width / 2, getSize().height / 2);
+            g2d.translate(this.getSize().width / 2, this.getSize().height / 2);
             g2d.setStroke(new BasicStroke((float) DimensionalAnalysis.getLineThickness(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            _shape.draw(g2d);
-            g2d.translate(-getSize().width / 2, -getSize().height / 2);
+            DimensionalCanvasFrame.shape.draw(g2d);
+            g2d.translate(-this.getSize().width / 2, -this.getSize().height / 2);
 
             g2d.dispose();
 
