@@ -1,5 +1,6 @@
 package com.higgs.da;
 
+import com.formdev.flatlaf.FlatDarculaLaf;
 import com.higgs.da.canvas.DimensionalCanvasFrame;
 
 public final class DimensionalAnalysis {
@@ -17,6 +18,7 @@ public final class DimensionalAnalysis {
     private static final int MAX_DIMENSIONS = DimensionalMatrixHelper.AXES_ORDER.length();
 
     public static void main(final String[] args) {
+        FlatDarculaLaf.setup();
         DimensionalAnalysis.frame = new DimensionalCanvasFrame();
         DimensionalAnalysis.frame.resetControls();
         DimensionalAnalysis.start();

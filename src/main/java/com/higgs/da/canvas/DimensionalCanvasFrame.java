@@ -233,7 +233,7 @@ public class DimensionalCanvasFrame extends JFrame {
             g2d.setColor(UIManager.getColor("Panel.background"));
             g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
 
-            g2d.setColor(Color.BLACK);
+            g2d.setColor(Color.WHITE);
 
 //            g2d.drawString(this.fps, 2, 12);
 
