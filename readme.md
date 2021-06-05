@@ -25,3 +25,5 @@ As well as some aesthetic choices such as line length, point size, and zoom.
 * For some reason the "toggle progression" button also massively lags the application
 
 <p>This is lazily maintained.</p>
+
+![](src/main/resources/readme/demo.gif)
