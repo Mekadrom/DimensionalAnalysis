@@ -24,8 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AngleControlsPanel extends AttributeControlsPanel {
-
-    private static List<AngleControlPanel> controls;
+    private final List<AngleControlPanel> controls = new ArrayList<>();
 
     public AngleControlsPanel(final Dimension dimension) {
         super("Angle", dimension);
@@ -33,11 +32,12 @@ public class AngleControlsPanel extends AttributeControlsPanel {
     }
 
     private void init() {
-        final JButton _stopProgressing = new JButton("Toggle Progress All");
-
-        _stopProgressing.addActionListener(actionEvent -> AngleControlsPanel.controls.forEach(AngleControlPanel::toggleProgress));
-
-        this.headerPanel.add(_stopProgressing, BorderLayout.EAST);
+        final JButton toggleProgressAllButton = new JButton("Toggle Progress All");
+        toggleProgressAllButton.addActionListener(actionEvent -> {
+            final boolean averageSetting = (this.controls.stream().filter(control -> control.progress.isSelected()).count() > (this.controls.size() / 2));
+            this.controls.forEach(progress -> progress.progress.setSelected(!averageSetting));
+        });
+        this.headerPanel.add(toggleProgressAllButton, BorderLayout.EAST);
     }
 
     public void setShape(final DrawableShape shape) {
@@ -57,8 +57,7 @@ public class AngleControlsPanel extends AttributeControlsPanel {
 
         final List<String> angleNames = Utils.permute(possibleChars, dimCount, false, false);
 
-        AngleControlsPanel.controls = new ArrayList<>();
-
+        this.controls.clear();
         for (int i = 0; i < numAngles; i++) {
             final AngleControlPanel angleControlPanel = new AngleControlPanel(i, angleNames.get(i));
 
@@ -70,11 +69,11 @@ public class AngleControlsPanel extends AttributeControlsPanel {
                     angleControlPanel.setAngleValue(shape.getAngle(angleControlPanel.getAngleIndex()));
                 }
             });
-            AngleControlsPanel.controls.add(angleControlPanel);
+            this.controls.add(angleControlPanel);
         }
 
-        for (final AngleControlPanel controlPanel : AngleControlsPanel.controls) {
-            controlPanel.setList(AngleControlsPanel.controls);
+        for (final AngleControlPanel controlPanel : this.controls) {
+            controlPanel.setList(this.controls);
         }
     }
 
@@ -222,10 +221,6 @@ public class AngleControlsPanel extends AttributeControlsPanel {
                     this._syncLabel.setEnabled(true);
                 }
             }
-        }
-
-        public void toggleProgress() {
-            this.progress.doClick();
         }
     }
 }
